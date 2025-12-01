@@ -1,0 +1,261 @@
+{
+  "pipeline": {
+    "name": "Fast Track Motors - Service Department",
+    "pipelineId": "ftm_service_pipeline",
+    "objectType": "deals",
+    "displayOrder": 1,
+    "stages": [
+      {
+        "stageId": "appointment_requested",
+        "label": "Appointment Requested",
+        "displayOrder": 0,
+        "probability": 0.30,
+        "description": "Service appointment request received",
+        "metadata": {
+          "isClosed": false,
+          "daysInStage": {
+            "warning": 1,
+            "critical": 2
+          },
+          "requiredActions": [
+            "Confirm appointment time with customer",
+            "Verify vehicle information",
+            "Note service requested"
+          ],
+          "automations": [
+            "Send confirmation text/email",
+            "Create calendar event",
+            "Notify service advisor"
+          ]
+        }
+      },
+      {
+        "stageId": "confirmed",
+        "label": "Confirmed",
+        "displayOrder": 1,
+        "probability": 0.60,
+        "description": "Appointment confirmed by customer",
+        "metadata": {
+          "isClosed": false,
+          "daysInStage": {
+            "warning": 7,
+            "critical": 14
+          },
+          "requiredActions": [
+            "Ensure parts availability if known",
+            "Block technician time",
+            "Prepare service bay if needed"
+          ],
+          "automations": [
+            "24-hour reminder SMS",
+            "1-hour reminder SMS",
+            "Directions to service bay"
+          ]
+        }
+      },
+      {
+        "stageId": "vehicle_dropped_off",
+        "label": "Vehicle Dropped Off",
+        "displayOrder": 2,
+        "probability": 0.75,
+        "description": "Customer has dropped off vehicle",
+        "metadata": {
+          "isClosed": false,
+          "daysInStage": {
+            "warning": 1,
+            "critical": 2
+          },
+          "requiredActions": [
+            "Complete vehicle walk-around",
+            "Document current mileage",
+            "Confirm service scope with customer"
+          ],
+          "keyFields": [
+            "mileage_in",
+            "service_items",
+            "estimated_completion"
+          ]
+        }
+      },
+      {
+        "stageId": "in_service",
+        "label": "In Service",
+        "displayOrder": 3,
+        "probability": 0.85,
+        "description": "Vehicle being serviced",
+        "metadata": {
+          "isClosed": false,
+          "daysInStage": {
+            "warning": 1,
+            "critical": 3
+          },
+          "requiredActions": [
+            "Update customer if additional work needed",
+            "Get approval for additional charges",
+            "Complete inspection checklist"
+          ],
+          "automations": [
+            "Status update text every 4 hours for major work",
+            "Notification when ready"
+          ]
+        }
+      },
+      {
+        "stageId": "ready_for_pickup",
+        "label": "Ready for Pickup",
+        "displayOrder": 4,
+        "probability": 0.95,
+        "description": "Service complete - awaiting customer pickup",
+        "metadata": {
+          "isClosed": false,
+          "daysInStage": {
+            "warning": 1,
+            "critical": 3
+          },
+          "requiredActions": [
+            "Quality check completed",
+            "Invoice prepared",
+            "Notify customer vehicle is ready"
+          ],
+          "automations": [
+            "Send 'Ready for Pickup' text immediately",
+            "Send reminder if not picked up within 24 hours"
+          ]
+        }
+      },
+      {
+        "stageId": "completed",
+        "label": "Completed",
+        "displayOrder": 5,
+        "probability": 1.0,
+        "description": "Service complete - vehicle picked up",
+        "metadata": {
+          "isClosed": true,
+          "isWon": true,
+          "requiredActions": [
+            "Process payment",
+            "Explain work completed",
+            "Recommend next service interval"
+          ],
+          "automations": [
+            "Send thank you text",
+            "Send satisfaction survey after 24 hours",
+            "Schedule next service reminder based on mileage/time"
+          ],
+          "keyFields": [
+            "service_total",
+            "next_service_due",
+            "mileage_out"
+          ]
+        }
+      },
+      {
+        "stageId": "no_show",
+        "label": "No Show",
+        "displayOrder": 6,
+        "probability": 0,
+        "description": "Customer did not show for appointment",
+        "metadata": {
+          "isClosed": true,
+          "isWon": false,
+          "automations": [
+            "Send 'We missed you' text",
+            "Offer to reschedule",
+            "Create follow-up task for next day"
+          ]
+        }
+      },
+      {
+        "stageId": "cancelled",
+        "label": "Cancelled",
+        "displayOrder": 7,
+        "probability": 0,
+        "description": "Customer cancelled appointment",
+        "metadata": {
+          "isClosed": true,
+          "isWon": false,
+          "requiredFields": [
+            "cancellation_reason"
+          ],
+          "automations": [
+            "Offer to reschedule",
+            "Add to re-engagement sequence if no reschedule"
+          ]
+        }
+      }
+    ]
+  },
+  "settings": {
+    "defaultStage": "appointment_requested",
+    "winProbabilityMethod": "stage_based",
+    "dealRotting": {
+      "enabled": true,
+      "warningDays": 3,
+      "criticalDays": 7
+    },
+    "notifications": {
+      "stageChange": true,
+      "dealRotting": true,
+      "newDeal": true
+    }
+  },
+  "serviceTypes": [
+    {
+      "name": "Oil Change",
+      "code": "OIL",
+      "estimatedDuration": 45,
+      "estimatedCost": "$39-$69"
+    },
+    {
+      "name": "Brake Service",
+      "code": "BRK",
+      "estimatedDuration": 120,
+      "estimatedCost": "$150-$400"
+    },
+    {
+      "name": "Tire Service",
+      "code": "TIR",
+      "estimatedDuration": 60,
+      "estimatedCost": "$25-$150"
+    },
+    {
+      "name": "NJ Inspection",
+      "code": "INS",
+      "estimatedDuration": 30,
+      "estimatedCost": "$Varies"
+    },
+    {
+      "name": "Diagnostic",
+      "code": "DIAG",
+      "estimatedDuration": 60,
+      "estimatedCost": "$89-$149"
+    },
+    {
+      "name": "A/C Service",
+      "code": "AC",
+      "estimatedDuration": 90,
+      "estimatedCost": "$100-$250"
+    },
+    {
+      "name": "General Repair",
+      "code": "REP",
+      "estimatedDuration": "TBD",
+      "estimatedCost": "TBD"
+    }
+  ],
+  "instructions": {
+    "howToImport": [
+      "1. Go to HubSpot Settings > Objects > Deals",
+      "2. Click 'Pipelines' tab",
+      "3. Click 'Create pipeline'",
+      "4. Name it 'Service Department'",
+      "5. Add stages in the order shown above",
+      "6. Set probabilities for each stage"
+    ],
+    "notes": [
+      "Service deals typically have lower dollar values than sales",
+      "Focus on throughput and customer satisfaction metrics",
+      "Use service visits to identify sales opportunities"
+    ]
+  }
+}

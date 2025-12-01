@@ -1,0 +1,150 @@
+{
+  "name": "FTM - Lead Router & Instant Notification",
+  "description": "Instantly routes new leads to team via SMS and creates HubSpot records",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ftm-lead-capture",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [100, 300],
+      "id": "webhook-trigger",
+      "name": "Lead Form Webhook",
+      "notes": "Receives data from website forms"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.formType }}",
+              "operation": "equals",
+              "value2": "test_drive"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [300, 300],
+      "id": "check-form-type",
+      "name": "Check Form Type"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "properties",
+              "value": "={{ JSON.stringify({ email: $json.email, firstname: $json.firstName, lastname: $json.lastName, phone: $json.phone, lead_source: 'website_form', vehicle_interest: $json.vehicle || $json.vehicleInterest || '', budget_range: $json.budget || '', has_trade_in: $json.tradeIn === 'yes' }) }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [500, 200],
+      "id": "create-hubspot-contact",
+      "name": "Create HubSpot Contact"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/deals",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "properties",
+              "value": "={{ JSON.stringify({ dealname: $json.firstName + ' ' + $json.lastName + ' - ' + ($json.vehicle || 'Vehicle Interest'), pipeline: 'ftm_sales_pipeline', dealstage: 'new_lead', vehicle_make: '', vehicle_model: '' }) }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [700, 200],
+      "id": "create-hubspot-deal",
+      "name": "Create HubSpot Deal"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
+        "to": "={{ $env.SALES_TEAM_PHONE }}",
+        "body": "=🚗 NEW LEAD - FAST TRACK MOTORS\n\n👤 {{ $json.firstName }} {{ $json.lastName }}\n📞 {{ $json.phone }}\n📧 {{ $json.email }}\n🚘 Interest: {{ $json.vehicle || $json.vehicleInterest || 'General inquiry' }}\n💰 Budget: {{ $json.budget || 'Not specified' }}\n🔄 Trade-in: {{ $json.tradeIn || 'No' }}\n\n⏰ {{ $now.format('h:mm A') }}\n\n📱 CALL WITHIN 5 MINUTES!"
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [700, 400],
+      "id": "send-sms-alert",
+      "name": "Send SMS to Sales Team",
+      "notes": "Instant alert to sales team"
+    },
+    {
+      "parameters": {
+        "fromEmail": "leads@fasttrackmotors.com",
+        "toEmail": "={{ $env.SALES_EMAIL }}",
+        "subject": "=🚗 New Lead: {{ $json.firstName }} {{ $json.lastName }} - {{ $json.formType }}",
+        "emailType": "html",
+        "html": "=<h2>New Lead Alert</h2><table style='border-collapse:collapse;'><tr><td style='padding:8px;border:1px solid #ddd;'><strong>Name</strong></td><td style='padding:8px;border:1px solid #ddd;'>{{ $json.firstName }} {{ $json.lastName }}</td></tr><tr><td style='padding:8px;border:1px solid #ddd;'><strong>Phone</strong></td><td style='padding:8px;border:1px solid #ddd;'><a href='tel:{{ $json.phone }}'>{{ $json.phone }}</a></td></tr><tr><td style='padding:8px;border:1px solid #ddd;'><strong>Email</strong></td><td style='padding:8px;border:1px solid #ddd;'>{{ $json.email }}</td></tr><tr><td style='padding:8px;border:1px solid #ddd;'><strong>Interest</strong></td><td style='padding:8px;border:1px solid #ddd;'>{{ $json.vehicle || $json.vehicleInterest || 'General' }}</td></tr><tr><td style='padding:8px;border:1px solid #ddd;'><strong>Form Type</strong></td><td style='padding:8px;border:1px solid #ddd;'>{{ $json.formType }}</td></tr><tr><td style='padding:8px;border:1px solid #ddd;'><strong>Submitted</strong></td><td style='padding:8px;border:1px solid #ddd;'>{{ $now.format('MMM D, YYYY h:mm A') }}</td></tr></table><p><strong>⚡ Respond within 5 minutes for best conversion!</strong></p>"
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [700, 600],
+      "id": "send-email-alert",
+      "name": "Send Email Alert"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [900, 300],
+      "id": "respond-success",
+      "name": "Respond Success"
+    }
+  ],
+  "connections": {
+    "Lead Form Webhook": {
+      "main": [[{"node": "Check Form Type", "type": "main", "index": 0}]]
+    },
+    "Check Form Type": {
+      "main": [
+        [{"node": "Create HubSpot Contact", "type": "main", "index": 0}],
+        [{"node": "Create HubSpot Contact", "type": "main", "index": 0}]
+      ]
+    },
+    "Create HubSpot Contact": {
+      "main": [[
+        {"node": "Create HubSpot Deal", "type": "main", "index": 0},
+        {"node": "Send SMS to Sales Team", "type": "main", "index": 0},
+        {"node": "Send Email Alert", "type": "main", "index": 0}
+      ]]
+    },
+    "Create HubSpot Deal": {
+      "main": [[{"node": "Respond Success", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "fast-track-motors-demo"
+  },
+  "tags": ["Fast Track Motors", "Lead Capture", "Sales"]
+}

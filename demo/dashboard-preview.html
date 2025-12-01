@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Fast Track Motors</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1B66FF;
+            --primary-dark: #1454CC;
+            --charcoal: #121212;
+            --charcoal-light: #1a1a1a;
+            --card-bg: #1e1e1e;
+            --silver: #C8C8C8;
+            --white: #F8F9FB;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --purple: #8B5CF6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--charcoal);
+            color: var(--white);
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 240px;
+            background: var(--charcoal-light);
+            border-right: 1px solid rgba(255,255,255,0.06);
+            padding: 1.5rem;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .sidebar-logo span { color: var(--primary); }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--silver);
+            margin-bottom: 0.75rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            color: var(--silver);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--white);
+        }
+
+        .nav-item.active {
+            background: rgba(27, 102, 255, 0.15);
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 240px;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .date-range {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: var(--silver);
+            font-size: 0.85rem;
+        }
+
+        .refresh-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.blue { background: rgba(27, 102, 255, 0.15); }
+        .stat-icon.green { background: rgba(16, 185, 129, 0.15); }
+        .stat-icon.yellow { background: rgba(245, 158, 11, 0.15); }
+        .stat-icon.purple { background: rgba(139, 92, 246, 0.15); }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .stat-trend.up {
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .stat-trend.down {
+            color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .stat-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--silver);
+            font-size: 0.85rem;
+        }
+
+        /* Charts Row */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--silver);
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* Simple Bar Chart */
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 200px;
+            padding-top: 1rem;
+        }
+
+        .bar-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .bar {
+            width: 32px;
+            border-radius: 4px 4px 0 0;
+            transition: height 0.5s ease;
+        }
+
+        .bar.primary { background: var(--primary); }
+        .bar.secondary { background: rgba(27, 102, 255, 0.3); }
+
+        .bar-label {
+            font-size: 0.75rem;
+            color: var(--silver);
+        }
+
+        /* Donut Chart */
+        .donut-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .donut {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--primary) 0deg 144deg,
+                var(--success) 144deg 216deg,
+                var(--warning) 216deg 270deg,
+                var(--purple) 270deg 324deg,
+                var(--error) 324deg 360deg
+            );
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .donut::after {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            right: 30px;
+            bottom: 30px;
+            background: var(--card-bg);
+            border-radius: 50%;
+        }
+
+        .donut-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1;
+        }
+
+        .donut-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .donut-label {
+            font-size: 0.75rem;
+            color: var(--silver);
+        }
+
+        .donut-legend {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            width: 100%;
+        }
+
+        .donut-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .donut-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+        }
+
+        /* Pipeline Section */
+        .pipeline-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .pipeline-container {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+        }
+
+        .pipeline-stage {
+            min-width: 220px;
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .stage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .stage-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .stage-total {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.8rem;
+            color: var(--success);
+        }
+
+        .stage-badge {
+            background: var(--primary);
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+        }
+
+        .deal-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .deal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .deal-name {
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .deal-value {
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--success);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .deal-vehicle {
+            font-size: 0.75rem;
+            color: var(--silver);
+            margin-bottom: 0.5rem;
+        }
+
+        .deal-meta {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .deal-tag {
+            font-size: 0.65rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.05);
+            color: var(--silver);
+        }
+
+        .deal-tag.hot {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error);
+        }
+
+        /* Activity Feed */
+        .activity-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .activity-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .activity-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.call { background: rgba(27, 102, 255, 0.15); }
+        .activity-icon.form { background: rgba(16, 185, 129, 0.15); }
+        .activity-icon.appointment { background: rgba(139, 92, 246, 0.15); }
+        .activity-icon.sale { background: rgba(245, 158, 11, 0.15); }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-text strong {
+            color: var(--white);
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: var(--silver);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .activity-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">Fast Track <span>Motors</span></div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Overview</div>
+            <a href="#" class="nav-item active">📊 Dashboard</a>
+            <a href="#" class="nav-item">📈 Analytics</a>
+            <a href="#" class="nav-item">📋 Reports</a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Sales</div>
+            <a href="#" class="nav-item">🚗 Leads</a>
+            <a href="#" class="nav-item">🤝 Deals</a>
+            <a href="#" class="nav-item">📅 Test Drives</a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Service</div>
+            <a href="#" class="nav-item">🔧 Appointments</a>
+            <a href="#" class="nav-item">📝 Work Orders</a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Settings</div>
+            <a href="#" class="nav-item">⚙️ Configuration</a>
+            <a href="#" class="nav-item">👥 Team</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="header">
+            <h1>Dashboard</h1>
+            <div class="header-actions">
+                <div class="date-range">📅 Nov 1 - Nov 29, 2024</div>
+                <button class="refresh-btn">🔄 Refresh</button>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon blue">📞</div>
+                    <div class="stat-trend up">↑ 23%</div>
+                </div>
+                <div class="stat-value">847</div>
+                <div class="stat-label">Calls Handled by AI</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon green">📋</div>
+                    <div class="stat-trend up">↑ 18%</div>
+                </div>
+                <div class="stat-value">312</div>
+                <div class="stat-label">New Leads This Month</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon yellow">🚗</div>
+                    <div class="stat-trend up">↑ 12%</div>
+                </div>
+                <div class="stat-value">67</div>
+                <div class="stat-label">Test Drives Scheduled</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon purple">💰</div>
+                    <div class="stat-trend up">↑ 31%</div>
+                </div>
+                <div class="stat-value">$487K</div>
+                <div class="stat-label">Pipeline Value</div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Lead Volume - Last 7 Days</h3>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: var(--primary);"></div>
+                            <span>This Week</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: rgba(27, 102, 255, 0.3);"></div>
+                            <span>Last Week</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bar-chart">
+                    <div class="bar-group">
+                        <div class="bar primary" style="height: 120px;"></div>
+                        <div class="bar secondary" style="height: 90px;"></div>
+                        <div class="bar-label">Mon</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar primary" style="height: 150px;"></div>
+                        <div class="bar secondary" style="height: 110px;"></div>
+                        <div class="bar-label">Tue</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar primary" style="height: 135px;"></div>
+                        <div class="bar secondary" style="height: 95px;"></div>
+                        <div class="bar-label">Wed</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar primary" style="height: 180px;"></div>
+                        <div class="bar secondary" style="height: 130px;"></div>
+                        <div class="bar-label">Thu</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar primary" style="height: 160px;"></div>
+                        <div class="bar secondary" style="height: 140px;"></div>
+                        <div class="bar-label">Fri</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar primary" style="height: 200px;"></div>
+                        <div class="bar secondary" style="height: 150px;"></div>
+                        <div class="bar-label">Sat</div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar primary" style="height: 40px;"></div>
+                        <div class="bar secondary" style="height: 30px;"></div>
+                        <div class="bar-label">Sun</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Lead Sources</h3>
+                </div>
+                <div class="donut-container">
+                    <div class="donut">
+                        <div class="donut-center">
+                            <div class="donut-value">312</div>
+                            <div class="donut-label">Total Leads</div>
+                        </div>
+                    </div>
+                    <div class="donut-legend">
+                        <div class="donut-legend-item">
+                            <div class="donut-legend-dot" style="background: var(--primary);"></div>
+                            <span>Voice AI (40%)</span>
+                        </div>
+                        <div class="donut-legend-item">
+                            <div class="donut-legend-dot" style="background: var(--success);"></div>
+                            <span>Website (20%)</span>
+                        </div>
+                        <div class="donut-legend-item">
+                            <div class="donut-legend-dot" style="background: var(--warning);"></div>
+                            <span>Walk-In (15%)</span>
+                        </div>
+                        <div class="donut-legend-item">
+                            <div class="donut-legend-dot" style="background: var(--purple);"></div>
+                            <span>CarGurus (15%)</span>
+                        </div>
+                        <div class="donut-legend-item">
+                            <div class="donut-legend-dot" style="background: var(--error);"></div>
+                            <span>Referral (10%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pipeline Section -->
+        <div class="pipeline-section">
+            <div class="section-header">
+                <h2 class="section-title">Sales Pipeline</h2>
+                <span style="color: var(--silver); font-size: 0.85rem;">32 Active Deals</span>
+            </div>
+            <div class="pipeline-container">
+                <div class="pipeline-stage">
+                    <div class="stage-header">
+                        <span class="stage-name">New Lead</span>
+                        <span class="stage-badge">12</span>
+                    </div>
+                    <div class="stage-total">$216,000</div>
+                    <div class="deal-card">
+                        <div class="deal-header">
+                            <span class="deal-name">Maria G.</span>
+                            <span class="deal-value">$18,500</span>
+                        </div>
+                        <div class="deal-vehicle">2020 Toyota Camry</div>
+                        <div class="deal-meta">
+                            <span class="deal-tag hot">HOT</span>
+                            <span class="deal-tag">Voice AI</span>
+                        </div>
+                    </div>
+                    <div class="deal-card">
+                        <div class="deal-header">
+                            <span class="deal-name">James W.</span>
+                            <span class="deal-value">$22,000</span>
+                        </div>
+                        <div class="deal-vehicle">2019 Honda CR-V</div>
+                        <div class="deal-meta">
+                            <span class="deal-tag">Website</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pipeline-stage">
+                    <div class="stage-header">
+                        <span class="stage-name">Contacted</span>
+                        <span class="stage-badge">8</span>
+                    </div>
+                    <div class="stage-total">$152,000</div>
+                    <div class="deal-card">
+                        <div class="deal-header">
+                            <span class="deal-name">Robert K.</span>
+                            <span class="deal-value">$19,750</span>
+                        </div>
+                        <div class="deal-vehicle">2021 Nissan Altima</div>
+                        <div class="deal-meta">
+                            <span class="deal-tag">CarGurus</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pipeline-stage" style="border: 1px solid var(--primary);">
+                    <div class="stage-header">
+                        <span class="stage-name">Test Drive</span>
+                        <span class="stage-badge">5</span>
+                    </div>
+                    <div class="stage-total">$108,500</div>
+                    <div class="deal-card">
+                        <div class="deal-header">
+                            <span class="deal-name">Sofia M.</span>
+                            <span class="deal-value">$28,500</span>
+                        </div>
+                        <div class="deal-vehicle">2020 BMW 3 Series</div>
+                        <div class="deal-meta">
+                            <span class="deal-tag hot">HOT</span>
+                            <span class="deal-tag">Today 2PM</span>
+                        </div>
+                    </div>
+                    <div class="deal-card">
+                        <div class="deal-header">
+                            <span class="deal-name">Carlos R.</span>
+                            <span class="deal-value">$24,000</span>
+                        </div>
+                        <div class="deal-vehicle">2021 Jeep Cherokee</div>
+                        <div class="deal-meta">
+                            <span class="deal-tag">Tomorrow 10AM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pipeline-stage">
+                    <div class="stage-header">
+                        <span class="stage-name">Negotiation</span>
+                        <span class="stage-badge">4</span>
+                    </div>
+                    <div class="stage-total">$94,000</div>
+                    <div class="deal-card">
+                        <div class="deal-header">
+                            <span class="deal-name">Ahmed T.</span>
+                            <span class="deal-value">$26,500</span>
+                        </div>
+                        <div class="deal-vehicle">2022 Hyundai Tucson</div>
+                        <div class="deal-meta">
+                            <span class="deal-tag hot">HOT</span>
+                            <span class="deal-tag">Trade-In</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pipeline-stage">
+                    <div class="stage-header">
+                        <span class="stage-name">Financing</span>
+                        <span class="stage-badge">3</span>
+                    </div>
+                    <div class="stage-total">$67,500</div>
+                    <div class="deal-card">
+                        <div class="deal-header">
+                            <span class="deal-name">Lisa P.</span>
+                            <span class="deal-value">$21,000</span>
+                        </div>
+                        <div class="deal-vehicle">2020 Ford Escape</div>
+                        <div class="deal-meta">
+                            <span class="deal-tag">Pending Approval</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Grid -->
+        <div class="activity-grid">
+            <div class="activity-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Recent Activity</h3>
+                </div>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon call">📞</div>
+                        <div class="activity-content">
+                            <div class="activity-text"><strong>AI handled call</strong> from new lead - scheduled test drive</div>
+                            <div class="activity-time">2 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon form">📋</div>
+                        <div class="activity-content">
+                            <div class="activity-text"><strong>New lead</strong> Maria G. submitted financing form</div>
+                            <div class="activity-time">15 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon appointment">📅</div>
+                        <div class="activity-content">
+                            <div class="activity-text"><strong>Test drive completed</strong> - Sofia M. loved the BMW</div>
+                            <div class="activity-time">1 hour ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon sale">💰</div>
+                        <div class="activity-content">
+                            <div class="activity-text"><strong>Deal closed!</strong> Michael D. - 2021 Mazda CX-5 - $25,500</div>
+                            <div class="activity-time">2 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon call">📞</div>
+                        <div class="activity-content">
+                            <div class="activity-text"><strong>After-hours call</strong> captured by AI - hot lead</div>
+                            <div class="activity-time">3 hours ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="activity-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Today's Schedule</h3>
+                </div>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon appointment">🚗</div>
+                        <div class="activity-content">
+                            <div class="activity-text"><strong>Test Drive</strong> - Sofia M. - BMW 3 Series</div>
+                            <div class="activity-time">2:00 PM</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon appointment">🔧</div>
+                        <div class="activity-content">
+                            <div class="activity-text"><strong>Service</strong> - John H. - Oil Change</div>
+                            <div class="activity-time">2:30 PM</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon appointment">🚗</div>
+                        <div class="activity-content">
+                            <div class="activity-text"><strong>Test Drive</strong> - Kevin M. - Honda Accord</div>
+                            <div class="activity-time">4:00 PM</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon appointment">💼</div>
+                        <div class="activity-content">
+                            <div class="activity-text"><strong>Delivery</strong> - Michael D. - Mazda CX-5</div>
+                            <div class="activity-time">5:30 PM</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Animate bars on load
+        document.querySelectorAll('.bar').forEach(bar => {
+            const height = bar.style.height;
+            bar.style.height = '0';
+            setTimeout(() => {
+                bar.style.height = height;
+            }, 100);
+        });
+    </script>
+</body>
+</html>

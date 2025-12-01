@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Pre-Approved - Fast Track Motors</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1B66FF;
+            --charcoal: #121212;
+            --charcoal-light: #1a1a1a;
+            --silver: #C8C8C8;
+            --white: #F8F9FB;
+            --success: #10B981;
+            --error: #EF4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--charcoal);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .form-container {
+            background: var(--charcoal-light);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 560px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-logo span { color: var(--primary); }
+
+        .form-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-subtitle {
+            color: var(--silver);
+            font-size: 0.95rem;
+        }
+
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 12px;
+        }
+
+        .trust-badge {
+            text-align: center;
+        }
+
+        .trust-badge .icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .trust-badge p {
+            color: var(--silver);
+            font-size: 0.75rem;
+            line-height: 1.3;
+        }
+
+        .credit-notice {
+            background: rgba(27, 102, 255, 0.1);
+            border: 1px solid rgba(27, 102, 255, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .credit-notice h4 {
+            color: var(--primary);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .credit-notice p {
+            color: var(--silver);
+            font-size: 0.85rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: var(--white);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--white);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group label .required { color: var(--error); }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--white);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(27, 102, 255, 0.05);
+        }
+
+        .form-group input::placeholder { color: rgba(200, 200, 200, 0.5); }
+
+        .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23C8C8C8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.25rem;
+            padding-right: 3rem;
+        }
+
+        .form-group select option {
+            background: var(--charcoal);
+            color: var(--white);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .credit-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .credit-option {
+            position: relative;
+        }
+
+        .credit-option input {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .credit-option label {
+            display: block;
+            text-align: center;
+            padding: 0.75rem 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+            margin-bottom: 0;
+        }
+
+        .credit-option input:checked + label {
+            background: rgba(27, 102, 255, 0.15);
+            border-color: var(--primary);
+        }
+
+        .credit-option label:hover {
+            border-color: rgba(27, 102, 255, 0.5);
+        }
+
+        .consent-group {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            margin-top: 1.5rem;
+        }
+
+        .consent-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            accent-color: var(--primary);
+        }
+
+        .consent-group label {
+            color: var(--silver);
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+
+        .consent-group a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            border: none;
+            border-radius: 12px;
+            color: var(--white);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1.5rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .form-footer p {
+            color: var(--silver);
+            font-size: 0.8rem;
+        }
+
+        .form-footer a { color: var(--primary); text-decoration: none; }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.5rem;
+        }
+
+        .success-message h3 {
+            color: var(--white);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-message p {
+            color: var(--silver);
+            margin-bottom: 1rem;
+        }
+
+        .next-steps {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: left;
+        }
+
+        .next-steps h4 {
+            color: var(--white);
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .next-steps ul {
+            list-style: none;
+        }
+
+        .next-steps li {
+            color: var(--silver);
+            font-size: 0.85rem;
+            padding: 0.4rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .next-steps li::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        @media (max-width: 480px) {
+            .form-container { padding: 2rem 1.5rem; }
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+            .credit-options { grid-template-columns: 1fr 1fr; }
+            .trust-badges { flex-wrap: wrap; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <div class="form-logo">Fast Track <span>Motors</span></div>
+            <h1 class="form-title">Get Pre-Approved Today</h1>
+            <p class="form-subtitle">No credit check required. See what you qualify for in minutes.</p>
+        </div>
+
+        <div class="trust-badges">
+            <div class="trust-badge">
+                <div class="icon">🔒</div>
+                <p>Secure &<br>Encrypted</p>
+            </div>
+            <div class="trust-badge">
+                <div class="icon">✓</div>
+                <p>No Impact on<br>Credit Score</p>
+            </div>
+            <div class="trust-badge">
+                <div class="icon">⚡</div>
+                <p>Fast<br>Approval</p>
+            </div>
+        </div>
+
+        <div class="credit-notice">
+            <h4>We Work With All Credit Situations</h4>
+            <p>Good credit, bad credit, no credit, first-time buyers - we've helped thousands get approved.</p>
+        </div>
+
+        <form id="financingForm">
+            <div class="form-section">
+                <h3 class="section-title">Personal Information</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>First Name <span class="required">*</span></label>
+                        <input type="text" name="firstName" required placeholder="John">
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name <span class="required">*</span></label>
+                        <input type="text" name="lastName" required placeholder="Smith">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email <span class="required">*</span></label>
+                        <input type="email" name="email" required placeholder="john@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone <span class="required">*</span></label>
+                        <input type="tel" name="phone" required placeholder="(201) 555-0123">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Home Address <span class="required">*</span></label>
+                    <input type="text" name="address" required placeholder="123 Main Street, Apt 4B">
+                </div>
+
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label>City <span class="required">*</span></label>
+                        <input type="text" name="city" required placeholder="Paterson">
+                    </div>
+                    <div class="form-group">
+                        <label>State <span class="required">*</span></label>
+                        <select name="state" required>
+                            <option value="">Select...</option>
+                            <option value="NJ" selected>New Jersey</option>
+                            <option value="NY">New York</option>
+                            <option value="PA">Pennsylvania</option>
+                            <option value="CT">Connecticut</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>ZIP <span class="required">*</span></label>
+                        <input type="text" name="zip" required placeholder="07514">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date of Birth <span class="required">*</span></label>
+                        <input type="date" name="dob" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Time at Current Address</label>
+                        <select name="timeAtAddress">
+                            <option value="">Select...</option>
+                            <option value="less-1">Less than 1 year</option>
+                            <option value="1-2">1-2 years</option>
+                            <option value="2-5">2-5 years</option>
+                            <option value="5+">5+ years</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">Employment & Income</h3>
+
+                <div class="form-group">
+                    <label>Employment Status <span class="required">*</span></label>
+                    <select name="employmentStatus" required>
+                        <option value="">Select...</option>
+                        <option value="employed">Employed Full-Time</option>
+                        <option value="part-time">Employed Part-Time</option>
+                        <option value="self-employed">Self-Employed</option>
+                        <option value="retired">Retired</option>
+                        <option value="student">Student</option>
+                        <option value="unemployed">Unemployed</option>
+                        <option value="other">Other Income Source</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Employer Name</label>
+                        <input type="text" name="employer" placeholder="Company Name">
+                    </div>
+                    <div class="form-group">
+                        <label>Job Title</label>
+                        <input type="text" name="jobTitle" placeholder="Your Position">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Monthly Income (Before Tax) <span class="required">*</span></label>
+                        <input type="text" name="monthlyIncome" required placeholder="$3,500">
+                    </div>
+                    <div class="form-group">
+                        <label>Time at Current Job</label>
+                        <select name="timeAtJob">
+                            <option value="">Select...</option>
+                            <option value="less-6m">Less than 6 months</option>
+                            <option value="6m-1y">6 months - 1 year</option>
+                            <option value="1-2y">1-2 years</option>
+                            <option value="2-5y">2-5 years</option>
+                            <option value="5y+">5+ years</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">Credit & Vehicle Preferences</h3>
+
+                <div class="form-group">
+                    <label>How Would You Describe Your Credit? <span class="required">*</span></label>
+                    <div class="credit-options">
+                        <div class="credit-option">
+                            <input type="radio" id="excellent" name="creditScore" value="excellent" required>
+                            <label for="excellent">Excellent<br><small style="color: var(--silver);">720+</small></label>
+                        </div>
+                        <div class="credit-option">
+                            <input type="radio" id="good" name="creditScore" value="good">
+                            <label for="good">Good<br><small style="color: var(--silver);">680-719</small></label>
+                        </div>
+                        <div class="credit-option">
+                            <input type="radio" id="fair" name="creditScore" value="fair">
+                            <label for="fair">Fair<br><small style="color: var(--silver);">620-679</small></label>
+                        </div>
+                        <div class="credit-option">
+                            <input type="radio" id="poor" name="creditScore" value="poor">
+                            <label for="poor">Poor<br><small style="color: var(--silver);">Below 620</small></label>
+                        </div>
+                        <div class="credit-option">
+                            <input type="radio" id="nocredit" name="creditScore" value="no_credit">
+                            <label for="nocredit">No Credit<br><small style="color: var(--silver);">First time</small></label>
+                        </div>
+                        <div class="credit-option">
+                            <input type="radio" id="unsure" name="creditScore" value="unsure">
+                            <label for="unsure">Not Sure<br><small style="color: var(--silver);">That's OK!</small></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Monthly Payment Budget</label>
+                        <select name="paymentBudget">
+                            <option value="">Select...</option>
+                            <option value="under-200">Under $200/mo</option>
+                            <option value="200-300">$200 - $300/mo</option>
+                            <option value="300-400">$300 - $400/mo</option>
+                            <option value="400-500">$400 - $500/mo</option>
+                            <option value="500+">$500+/mo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Down Payment Available</label>
+                        <select name="downPayment">
+                            <option value="">Select...</option>
+                            <option value="0-500">$0 - $500</option>
+                            <option value="500-1000">$500 - $1,000</option>
+                            <option value="1000-2000">$1,000 - $2,000</option>
+                            <option value="2000-3000">$2,000 - $3,000</option>
+                            <option value="3000+">$3,000+</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Vehicle You're Interested In (Optional)</label>
+                    <input type="text" name="vehicleInterest" placeholder="e.g., SUV under $20k, 2021 Honda Accord">
+                </div>
+            </div>
+
+            <div class="consent-group">
+                <input type="checkbox" id="consent" name="consent" required>
+                <label for="consent">I authorize Fast Track Motors to contact me about financing options via phone, email, or text. I understand this is not a credit application and will not affect my credit score. <a href="#">Privacy Policy</a></label>
+            </div>
+
+            <button type="submit" class="submit-btn">Get Pre-Approved Now</button>
+        </form>
+
+        <div class="success-message" id="successMessage">
+            <div class="success-icon">✓</div>
+            <h3>Pre-Qualification Submitted!</h3>
+            <p>Our finance team is reviewing your information. You'll hear from us within 1 hour during business hours.</p>
+            <div class="next-steps">
+                <h4>What Happens Next:</h4>
+                <ul>
+                    <li>Finance specialist reviews your info</li>
+                    <li>We'll call with your pre-approval options</li>
+                    <li>Come in to pick your vehicle</li>
+                    <li>Drive away same day!</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="form-footer">
+            <p>Have questions? Call our finance team at <a href="tel:+12013406400">(201) 340-6400</a></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('financingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const submitBtn = form.querySelector('.submit-btn');
+            const successMessage = document.getElementById('successMessage');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+
+            const formData = {
+                formType: 'financing_prequalification',
+                firstName: form.firstName.value,
+                lastName: form.lastName.value,
+                email: form.email.value,
+                phone: form.phone.value,
+                address: form.address.value,
+                city: form.city.value,
+                state: form.state.value,
+                zip: form.zip.value,
+                dob: form.dob.value,
+                timeAtAddress: form.timeAtAddress.value,
+                employmentStatus: form.employmentStatus.value,
+                employer: form.employer.value,
+                jobTitle: form.jobTitle.value,
+                monthlyIncome: form.monthlyIncome.value,
+                timeAtJob: form.timeAtJob.value,
+                creditScore: form.creditScore.value,
+                paymentBudget: form.paymentBudget.value,
+                downPayment: form.downPayment.value,
+                vehicleInterest: form.vehicleInterest.value,
+                source: 'website',
+                submittedAt: new Date().toISOString()
+            };
+
+            try {
+                // Configure webhook URL - update this with your n8n webhook URL
+                const webhookUrl = window.FTM_WEBHOOK_URL || 'https://your-n8n-instance.app/webhook/ftm-lead';
+
+                // Send to webhook
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData),
+                    mode: 'cors'
+                });
+
+                if (!response.ok && webhookUrl.includes('your-n8n-instance')) {
+                    // Demo mode - simulate success if using placeholder URL
+                    console.log('Demo mode: Form data would be sent:', formData);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                } else if (!response.ok) {
+                    throw new Error('Webhook failed');
+                }
+
+                form.style.display = 'none';
+                document.querySelector('.credit-notice').style.display = 'none';
+                document.querySelector('.trust-badges').style.display = 'none';
+                successMessage.style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Get Pre-Approved Now';
+                alert('Something went wrong. Please try again or call us directly.');
+            }
+        });
+
+        // Phone formatting
+        document.querySelector('input[name="phone"]').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 6) {
+                value = `(${value.slice(0,3)}) ${value.slice(3,6)}-${value.slice(6,10)}`;
+            } else if (value.length >= 3) {
+                value = `(${value.slice(0,3)}) ${value.slice(3)}`;
+            }
+            e.target.value = value;
+        });
+
+        // Income formatting
+        document.querySelector('input[name="monthlyIncome"]').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^\d]/g, '');
+            if (value) {
+                e.target.value = '$' + parseInt(value).toLocaleString();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+{
+  "name": "FTM - Universal Lead Handler (CRM-Agnostic)",
+  "description": "Receives leads from all forms, sends notifications, and routes to any CRM",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ftm-lead",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [100, 300],
+      "id": "webhook-trigger",
+      "name": "Lead Webhook",
+      "webhookId": "ftm-lead-capture",
+      "notes": "Single endpoint for all forms"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize and enrich lead data\nconst lead = $input.first().json;\n\n// Determine lead type and priority\nlet leadType = 'general';\nlet priority = 'normal';\nlet pipelineType = 'sales';\n\nswitch(lead.formType) {\n  case 'test_drive':\n    leadType = 'Test Drive Request';\n    priority = 'high';\n    break;\n  case 'vehicle_inquiry':\n    leadType = 'Vehicle Inquiry';\n    priority = 'high';\n    break;\n  case 'financing_prequalification':\n    leadType = 'Financing Lead';\n    priority = 'high';\n    break;\n  case 'trade_in':\n    leadType = 'Trade-In Request';\n    priority = 'medium';\n    break;\n  case 'service_appointment':\n    leadType = 'Service Appointment';\n    priority = 'medium';\n    pipelineType = 'service';\n    break;\n  default:\n    leadType = 'General Inquiry';\n}\n\n// Format phone for display\nlet displayPhone = lead.phone || '';\n\n// Build notification message\nconst emoji = priority === 'high' ? '🔥' : '📋';\nconst smsMessage = `${emoji} NEW ${leadType.toUpperCase()}\n\n👤 ${lead.firstName} ${lead.lastName}\n📞 ${displayPhone}\n📧 ${lead.email || 'No email'}\n🚘 ${lead.vehicle || lead.vehicleInterest || lead.services?.join(', ') || 'Not specified'}\n💰 ${lead.budget || lead.paymentBudget || 'Not specified'}\n\n⏰ ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}\n\n📱 RESPOND QUICKLY!`;\n\n// Build email HTML\nconst emailHtml = `\n<div style=\"font-family: Arial, sans-serif; max-width: 600px;\">\n  <h2 style=\"color: #1B66FF; margin-bottom: 20px;\">${emoji} New ${leadType}</h2>\n  <table style=\"width: 100%; border-collapse: collapse;\">\n    <tr><td style=\"padding: 10px; border: 1px solid #eee; background: #f9f9f9;\"><strong>Name</strong></td><td style=\"padding: 10px; border: 1px solid #eee;\">${lead.firstName} ${lead.lastName}</td></tr>\n    <tr><td style=\"padding: 10px; border: 1px solid #eee; background: #f9f9f9;\"><strong>Phone</strong></td><td style=\"padding: 10px; border: 1px solid #eee;\"><a href=\"tel:${lead.phone}\">${displayPhone}</a></td></tr>\n    <tr><td style=\"padding: 10px; border: 1px solid #eee; background: #f9f9f9;\"><strong>Email</strong></td><td style=\"padding: 10px; border: 1px solid #eee;\">${lead.email || 'Not provided'}</td></tr>\n    <tr><td style=\"padding: 10px; border: 1px solid #eee; background: #f9f9f9;\"><strong>Interest</strong></td><td style=\"padding: 10px; border: 1px solid #eee;\">${lead.vehicle || lead.vehicleInterest || lead.services?.join(', ') || 'General'}</td></tr>\n    <tr><td style=\"padding: 10px; border: 1px solid #eee; background: #f9f9f9;\"><strong>Budget</strong></td><td style=\"padding: 10px; border: 1px solid #eee;\">${lead.budget || lead.paymentBudget || 'Not specified'}</td></tr>\n    <tr><td style=\"padding: 10px; border: 1px solid #eee; background: #f9f9f9;\"><strong>Form Type</strong></td><td style=\"padding: 10px; border: 1px solid #eee;\">${leadType}</td></tr>\n    <tr><td style=\"padding: 10px; border: 1px solid #eee; background: #f9f9f9;\"><strong>Priority</strong></td><td style=\"padding: 10px; border: 1px solid #eee;\">${priority.toUpperCase()}</td></tr>\n    <tr><td style=\"padding: 10px; border: 1px solid #eee; background: #f9f9f9;\"><strong>Submitted</strong></td><td style=\"padding: 10px; border: 1px solid #eee;\">${new Date().toLocaleString()}</td></tr>\n  </table>\n  <p style=\"margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px;\"><strong>⚡ 78% of customers buy from the first dealer to respond!</strong></p>\n</div>\n`;\n\nreturn {\n  ...lead,\n  leadType,\n  priority,\n  pipelineType,\n  smsMessage,\n  emailHtml,\n  emailSubject: `${emoji} New ${leadType}: ${lead.firstName} ${lead.lastName}`,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300],
+      "id": "process-lead",
+      "name": "Process & Enrich Lead"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
+        "to": "={{ $env.ALERT_PHONE_1 }}",
+        "body": "={{ $json.smsMessage }}"
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [500, 150],
+      "id": "sms-alert-1",
+      "name": "SMS Alert - Person 1"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
+        "to": "={{ $env.ALERT_PHONE_2 }}",
+        "body": "={{ $json.smsMessage }}"
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "id": "sms-alert-2",
+      "name": "SMS Alert - Person 2",
+      "disabled": true,
+      "notes": "Enable when second contact provided"
+    },
+    {
+      "parameters": {
+        "fromEmail": "leads@fasttrackmotors.com",
+        "toEmail": "={{ $env.ALERT_EMAIL }}",
+        "subject": "={{ $json.emailSubject }}",
+        "emailType": "html",
+        "html": "={{ $json.emailHtml }}"
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [500, 450],
+      "id": "email-alert",
+      "name": "Email Alert"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.GOOGLE_SHEETS_WEBHOOK }}",
+        "method": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "timestamp", "value": "={{ $json.timestamp }}"},
+            {"name": "firstName", "value": "={{ $json.firstName }}"},
+            {"name": "lastName", "value": "={{ $json.lastName }}"},
+            {"name": "phone", "value": "={{ $json.phone }}"},
+            {"name": "email", "value": "={{ $json.email }}"},
+            {"name": "leadType", "value": "={{ $json.leadType }}"},
+            {"name": "vehicle", "value": "={{ $json.vehicle || $json.vehicleInterest || '' }}"},
+            {"name": "budget", "value": "={{ $json.budget || '' }}"},
+            {"name": "priority", "value": "={{ $json.priority }}"},
+            {"name": "source", "value": "={{ $json.source || 'website' }}"}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [700, 150],
+      "id": "sheets-backup",
+      "name": "Google Sheets Backup",
+      "notes": "Always log to sheets as backup"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $env.CRM_TYPE }}",
+              "operation": "equals",
+              "value2": "hubspot"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [700, 300],
+      "id": "check-crm-type",
+      "name": "CRM Router"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "properties",
+              "value": "={{ JSON.stringify({ email: $json.email, firstname: $json.firstName, lastname: $json.lastName, phone: $json.phone, lead_source: 'website_form', vehicle_interest: $json.vehicle || $json.vehicleInterest || '' }) }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 200],
+      "id": "hubspot-create",
+      "name": "HubSpot - Create Contact"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.CUSTOM_CRM_WEBHOOK }}",
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 400],
+      "id": "custom-crm",
+      "name": "Custom CRM Webhook",
+      "notes": "For DealerCenter, Frazer, or other CRM"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: 'Lead received', leadId: $json.timestamp }) }}"
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [1100, 300],
+      "id": "respond-success",
+      "name": "Respond Success"
+    }
+  ],
+  "connections": {
+    "Lead Webhook": {
+      "main": [[{"node": "Process & Enrich Lead", "type": "main", "index": 0}]]
+    },
+    "Process & Enrich Lead": {
+      "main": [[
+        {"node": "SMS Alert - Person 1", "type": "main", "index": 0},
+        {"node": "SMS Alert - Person 2", "type": "main", "index": 0},
+        {"node": "Email Alert", "type": "main", "index": 0},
+        {"node": "Google Sheets Backup", "type": "main", "index": 0},
+        {"node": "CRM Router", "type": "main", "index": 0}
+      ]]
+    },
+    "CRM Router": {
+      "main": [
+        [{"node": "HubSpot - Create Contact", "type": "main", "index": 0}],
+        [{"node": "Custom CRM Webhook", "type": "main", "index": 0}]
+      ]
+    },
+    "HubSpot - Create Contact": {
+      "main": [[{"node": "Respond Success", "type": "main", "index": 0}]]
+    },
+    "Custom CRM Webhook": {
+      "main": [[{"node": "Respond Success", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "env": {
+    "required": [
+      "TWILIO_PHONE_NUMBER",
+      "ALERT_PHONE_1",
+      "ALERT_EMAIL"
+    ],
+    "optional": [
+      "ALERT_PHONE_2",
+      "ALERT_PHONE_3",
+      "GOOGLE_SHEETS_WEBHOOK",
+      "CRM_TYPE",
+      "CUSTOM_CRM_WEBHOOK"
+    ]
+  },
+  "meta": {
+    "instanceId": "fast-track-motors"
+  },
+  "tags": ["Fast Track Motors", "Lead Capture", "CRM-Agnostic"]
+}

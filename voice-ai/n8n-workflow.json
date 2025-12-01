@@ -1,0 +1,243 @@
+{
+  "name": "FTM - Voice AI Booking Agent",
+  "description": "Handles voice calls via Retell AI - books test drives and service appointments",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ftm-voice-agent",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [100, 336],
+      "id": "webhook-trigger",
+      "name": "Retell Webhook",
+      "webhookId": "ftm-voice-agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=The call transcription:\n\n{{ $json.body.call.transcript }}",
+        "options": {
+          "systemMessage": "=Agent prompt\n\nThe call transcription:\n{{ $json.body.call.transcript }}\n\nUse this as your system prompt:\n\n# GOAL\nYou will get the transcription of the call until this point.\nFocus only on the last request.\nYour goals: check availability, book test drives, schedule service appointments, capture leads.\nDo not book the appointment before you confirm the available time with the customer.\n\n# 1. Checking the available time\n- If the user provided you a time, check if it is available.\n  - If it is not available, provide 3 free time slots.\n- If the user asked only for the free time slots, provide the 3 time slots.\n\n# 2. Book the appointment\n- Before calling create_event, ALWAYS call 'Get many events in Google Calendar' first to verify the time is free.\n- Only call 'Create an event in Google Calendar' ONCE per booking request.\n- Verify the customer's chosen time was in your offered list before booking.\n- If they pick a time you didn't offer, check that time first with get_events.\n- If the user provides you a free time slot to make a booking, and if it is really free, book that timeslot.\n- Add all the important information to the calendar event:\n  - Summary: \"[TYPE] - [Customer Name]\" (e.g., \"Test Drive - John Smith\" or \"Service - Maria Garcia\")\n  - Description: Include customer name, phone, vehicle of interest or service needed\n\n# 3. Rescheduling\n- Get current details (name, date, time).\n- Get new time.\n- Call get_events for new date.\n- If free: create_event (new), then delete_event (old).\n- If taken: offer alternatives clearly.\n\n# 4. Cancelling\n- Get details (name, date, time).\n- Call delete_event.\n- Say \"cancelled\" or \"your appointment is cancelled.\"\n\nToday's date and time is {{ $now }}.\nTimezone: America/New_York (currently UTC-05:00 Eastern Standard Time).\n\nWhen calling create_event, format times as ISO 8601 with timezone offset:\nCORRECT FORMAT: \"2024-11-29T14:00:00-05:00\"\nWRONG FORMAT: \"2:00 PM\" or \"14:00\"\n\nALWAYS include the -05:00 timezone offset in your time formatting.\n\n# APPOINTMENT TYPES AND DURATIONS\n- Test Drive: 45 minutes\n- Oil Change: 45 minutes\n- Service Appointment: 60 minutes\n- Inspection: 30 minutes\n\n# BUSINESS HOURS\nMonday - Saturday: 9:00 AM to 7:00 PM\nSunday: CLOSED\n\nDo NOT book appointments outside business hours.\nIf customer requests Sunday, explain we're closed and offer Monday.\n\nUnderstand the user's request and act accordingly.\nMake sure you book for the correct date and time.\nDo only what the user asked lastly.\nDo not book the appointment before you confirm the available time with the customer.\nDo not book if the time is already booked."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [300, 336],
+      "id": "ai-agent",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [200, 550],
+      "id": "openai-model",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "YOUR_CALENDAR_ID@gmail.com",
+          "mode": "list",
+          "cachedResultName": "Fast Track Motors Calendar"
+        },
+        "returnAll": "={{ $fromAI('Return_All', ``, 'boolean') }}",
+        "timeMin": "={{ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [400, 600],
+      "id": "get-events",
+      "name": "Get many events in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "YOUR_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Calendar - Fast Track Motors"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "YOUR_CALENDAR_ID@gmail.com",
+          "mode": "list",
+          "cachedResultName": "Fast Track Motors Calendar"
+        },
+        "start": "={{ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "description": "={{ $fromAI('Description', ``, 'string') }}",
+          "summary": "={{ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [550, 600],
+      "id": "create-event",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "YOUR_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Calendar - Fast Track Motors"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "YOUR_CALENDAR_ID@gmail.com",
+          "mode": "list",
+          "cachedResultName": "Fast Track Motors Calendar"
+        },
+        "eventId": "={{ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [250, 700],
+      "id": "delete-event",
+      "name": "Delete an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "YOUR_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Calendar - Fast Track Motors"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [550, 336],
+      "id": "respond-webhook",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Retell Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many events in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ftm-voice-agent-v1",
+  "meta": {
+    "instanceId": "fast-track-motors-demo"
+  },
+  "id": "ftm-voice-agent",
+  "tags": ["Fast Track Motors", "Voice AI", "Retell", "Appointments"],
+  "setupInstructions": {
+    "steps": [
+      "1. Import this workflow into n8n",
+      "2. Replace 'YOUR_CALENDAR_ID@gmail.com' with Fast Track Motors Google Calendar",
+      "3. Set up Google Calendar OAuth2 credentials",
+      "4. Set up OpenAI API credentials",
+      "5. Activate the workflow",
+      "6. Copy the webhook URL",
+      "7. In Retell AI, create a new agent",
+      "8. Paste the webhook URL as the agent's backend URL",
+      "9. Configure Retell phone number",
+      "10. Test with a call!"
+    ],
+    "localSetup": [
+      "If running n8n locally:",
+      "1. Start n8n: npx n8n",
+      "2. Import workflow",
+      "3. Expose with tunnel: ngrok http 5678",
+      "4. Use ngrok URL + webhook path in Retell"
+    ]
+  }
+}

@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROI Calculator - Fast Track Motors</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1B66FF;
+            --charcoal: #121212;
+            --charcoal-light: #1a1a1a;
+            --card-bg: #1e1e1e;
+            --silver: #C8C8C8;
+            --white: #F8F9FB;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--charcoal);
+            color: var(--white);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .logo span { color: var(--primary); }
+
+        .header h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--silver);
+            font-size: 1.1rem;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--silver);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 1rem;
+            padding-left: 2.5rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: var(--white);
+            font-size: 1.1rem;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .input-prefix {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--silver);
+            font-size: 1rem;
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--silver);
+            font-size: 0.9rem;
+        }
+
+        .slider-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .slider-label {
+            color: var(--silver);
+            font-size: 0.9rem;
+        }
+
+        .slider-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Results */
+        .results-card {
+            background: linear-gradient(135deg, rgba(27, 102, 255, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border: 1px solid rgba(27, 102, 255, 0.2);
+        }
+
+        .result-item {
+            padding: 1.25rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: var(--silver);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .result-value.highlight {
+            color: var(--success);
+        }
+
+        .result-value.primary {
+            color: var(--primary);
+        }
+
+        .result-subtext {
+            color: var(--silver);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .roi-badge {
+            display: inline-block;
+            background: var(--success);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 100px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+
+        /* Comparison */
+        .comparison-section {
+            margin-top: 2rem;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .comparison-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .comparison-card.highlight {
+            border-color: var(--primary);
+            background: rgba(27, 102, 255, 0.05);
+        }
+
+        .comparison-title {
+            font-size: 0.85rem;
+            color: var(--silver);
+            margin-bottom: 0.75rem;
+        }
+
+        .comparison-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .comparison-card.highlight .comparison-value {
+            color: var(--success);
+        }
+
+        .comparison-detail {
+            font-size: 0.8rem;
+            color: var(--silver);
+        }
+
+        /* Industry Stats */
+        .stats-section {
+            margin-top: 3rem;
+        }
+
+        .stats-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .stats-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--warning);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--silver);
+            line-height: 1.4;
+        }
+
+        /* CTA */
+        .cta-section {
+            margin-top: 3rem;
+            text-align: center;
+            padding: 3rem;
+            background: linear-gradient(135deg, var(--primary) 0%, #0EA5E9 100%);
+            border-radius: 20px;
+        }
+
+        .cta-section h2 {
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta-section p {
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            color: var(--primary);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">Fast Track <span>Motors</span></div>
+            <h1>ROI Calculator</h1>
+            <p>See exactly how much revenue you're leaving on the table</p>
+        </header>
+
+        <div class="calculator-grid">
+            <!-- Inputs -->
+            <div class="card">
+                <h2 class="card-title">📊 Your Numbers</h2>
+
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="slider-label">Estimated Missed Calls Per Week</span>
+                        <span class="slider-value" id="missedCallsValue">25</span>
+                    </div>
+                    <input type="range" id="missedCalls" min="5" max="100" value="25" oninput="calculate()">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="slider-label">After-Hours Leads Lost Weekly</span>
+                        <span class="slider-value" id="afterHoursValue">15</span>
+                    </div>
+                    <input type="range" id="afterHours" min="0" max="50" value="15" oninput="calculate()">
+                </div>
+
+                <div class="input-group">
+                    <label>Average Gross Profit Per Sale</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="avgProfit" value="2500" oninput="calculate()">
+                    </div>
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="slider-label">Lead to Sale Conversion Rate</span>
+                        <span class="slider-value" id="conversionValue">12%</span>
+                    </div>
+                    <input type="range" id="conversion" min="5" max="25" value="12" oninput="calculate()">
+                </div>
+
+                <div class="input-group">
+                    <label>Monthly System Investment</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="investment" value="1000" oninput="calculate()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="card results-card">
+                <h2 class="card-title">💰 Your Results</h2>
+
+                <div class="result-item">
+                    <div class="result-label">Monthly Leads Captured</div>
+                    <div class="result-value primary" id="leadsCaptures">160</div>
+                    <div class="result-subtext">From missed calls + after-hours</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">Additional Monthly Sales</div>
+                    <div class="result-value" id="additionalSales">19</div>
+                    <div class="result-subtext">At your conversion rate</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">Monthly Revenue Impact</div>
+                    <div class="result-value highlight" id="monthlyRevenue">$47,500</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">Annual Revenue Impact</div>
+                    <div class="result-value highlight" id="annualRevenue">$570,000</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">Return on Investment</div>
+                    <div class="roi-badge" id="roiResult">47x ROI</div>
+                    <div class="result-subtext" style="margin-top: 0.75rem;">For every $1 invested, you get $47 back</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison -->
+        <div class="comparison-section">
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <div class="comparison-title">WITHOUT AI System</div>
+                    <div class="comparison-value" style="color: var(--error);" id="withoutSystem">$0</div>
+                    <div class="comparison-detail">Missed calls = Lost revenue</div>
+                </div>
+                <div class="comparison-card highlight">
+                    <div class="comparison-title">WITH Revion AI System</div>
+                    <div class="comparison-value" id="withSystem">$46,500</div>
+                    <div class="comparison-detail">After $1,000/mo investment</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Industry Stats -->
+        <div class="stats-section">
+            <div class="stats-header">
+                <h2>Industry Data Points</h2>
+                <p style="color: var(--silver);">Why AI-powered lead capture is essential</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">$120</div>
+                    <div class="stat-label">Average value of each missed call</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">78%</div>
+                    <div class="stat-label">Buy from first dealer to respond</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">21x</div>
+                    <div class="stat-label">Less likely to sell after 30 min wait</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">40%</div>
+                    <div class="stat-label">Of week uncovered (evenings + Sundays)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-section">
+            <h2>Ready to Capture Every Lead?</h2>
+            <p>See it in action. Call our AI demo right now and experience what your customers will experience.</p>
+            <a href="tel:+12013406400" class="cta-btn">
+                📞 Call AI Demo Now
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            // Get values
+            const missedCalls = parseInt(document.getElementById('missedCalls').value);
+            const afterHours = parseInt(document.getElementById('afterHours').value);
+            const avgProfit = parseInt(document.getElementById('avgProfit').value) || 0;
+            const conversion = parseInt(document.getElementById('conversion').value);
+            const investment = parseInt(document.getElementById('investment').value) || 0;
+
+            // Update display values
+            document.getElementById('missedCallsValue').textContent = missedCalls;
+            document.getElementById('afterHoursValue').textContent = afterHours;
+            document.getElementById('conversionValue').textContent = conversion + '%';
+
+            // Calculate
+            const monthlyLeads = (missedCalls + afterHours) * 4; // 4 weeks
+            const monthlySales = Math.round(monthlyLeads * (conversion / 100));
+            const monthlyRevenue = monthlySales * avgProfit;
+            const annualRevenue = monthlyRevenue * 12;
+            const netMonthlyRevenue = monthlyRevenue - investment;
+            const roi = investment > 0 ? Math.round(netMonthlyRevenue / investment) : 0;
+
+            // Update results
+            document.getElementById('leadsCaptures').textContent = monthlyLeads;
+            document.getElementById('additionalSales').textContent = monthlySales;
+            document.getElementById('monthlyRevenue').textContent = '$' + monthlyRevenue.toLocaleString();
+            document.getElementById('annualRevenue').textContent = '$' + annualRevenue.toLocaleString();
+            document.getElementById('roiResult').textContent = roi + 'x ROI';
+
+            // Comparison
+            document.getElementById('withoutSystem').textContent = '$0';
+            document.getElementById('withSystem').textContent = '$' + netMonthlyRevenue.toLocaleString();
+        }
+
+        // Initialize
+        calculate();
+    </script>
+</body>
+</html>

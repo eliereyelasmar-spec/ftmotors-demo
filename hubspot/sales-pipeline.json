@@ -1,0 +1,223 @@
+{
+  "pipeline": {
+    "name": "Fast Track Motors - Vehicle Sales",
+    "pipelineId": "ftm_sales_pipeline",
+    "objectType": "deals",
+    "displayOrder": 0,
+    "stages": [
+      {
+        "stageId": "new_lead",
+        "label": "New Lead",
+        "displayOrder": 0,
+        "probability": 0.05,
+        "description": "New inquiry received - not yet contacted",
+        "metadata": {
+          "isClosed": false,
+          "daysInStage": {
+            "warning": 1,
+            "critical": 2
+          },
+          "requiredActions": [
+            "Attempt first contact within 5 minutes",
+            "Log contact method (call, text, email)",
+            "Verify lead source"
+          ],
+          "automations": [
+            "Instant SMS to assigned salesperson",
+            "Auto-create task for follow-up",
+            "Add to 'Hot Lead' sequence if after-hours"
+          ]
+        }
+      },
+      {
+        "stageId": "contacted",
+        "label": "Contacted",
+        "displayOrder": 1,
+        "probability": 0.15,
+        "description": "Initial contact made - qualifying interest",
+        "metadata": {
+          "isClosed": false,
+          "daysInStage": {
+            "warning": 3,
+            "critical": 7
+          },
+          "requiredActions": [
+            "Confirm vehicle of interest",
+            "Discuss financing needs",
+            "Propose test drive"
+          ],
+          "exitCriteria": {
+            "toNextStage": "Test drive scheduled or ready to discuss specific vehicle",
+            "toLost": "No response after 5 attempts or explicitly not interested"
+          }
+        }
+      },
+      {
+        "stageId": "test_drive_scheduled",
+        "label": "Test Drive Scheduled",
+        "displayOrder": 2,
+        "probability": 0.35,
+        "description": "Test drive appointment confirmed",
+        "metadata": {
+          "isClosed": false,
+          "daysInStage": {
+            "warning": 7,
+            "critical": 14
+          },
+          "requiredActions": [
+            "Send confirmation text/email with details",
+            "Prepare vehicle for test drive",
+            "Review customer credit situation if applicable"
+          ],
+          "automations": [
+            "Send reminder 24 hours before",
+            "Send reminder 1 hour before",
+            "If no-show, trigger recovery sequence"
+          ]
+        }
+      },
+      {
+        "stageId": "test_drive_completed",
+        "label": "Test Drive Completed",
+        "displayOrder": 3,
+        "probability": 0.50,
+        "description": "Customer has test driven vehicle",
+        "metadata": {
+          "isClosed": false,
+          "daysInStage": {
+            "warning": 2,
+            "critical": 5
+          },
+          "requiredActions": [
+            "Get feedback on test drive",
+            "Discuss pricing and terms",
+            "Begin credit application if interested"
+          ],
+          "exitCriteria": {
+            "toNextStage": "Customer ready to discuss numbers",
+            "toLost": "Customer not interested or shopping elsewhere"
+          }
+        }
+      },
+      {
+        "stageId": "negotiation",
+        "label": "Negotiation",
+        "displayOrder": 4,
+        "probability": 0.65,
+        "description": "Discussing price, trade-in, and terms",
+        "metadata": {
+          "isClosed": false,
+          "daysInStage": {
+            "warning": 3,
+            "critical": 7
+          },
+          "requiredActions": [
+            "Present pricing worksheet",
+            "Evaluate trade-in if applicable",
+            "Discuss down payment options"
+          ],
+          "keyFields": [
+            "trade_in_value",
+            "asking_price",
+            "down_payment"
+          ]
+        }
+      },
+      {
+        "stageId": "financing",
+        "label": "Financing",
+        "displayOrder": 5,
+        "probability": 0.80,
+        "description": "Credit application submitted, awaiting approval",
+        "metadata": {
+          "isClosed": false,
+          "daysInStage": {
+            "warning": 2,
+            "critical": 5
+          },
+          "requiredActions": [
+            "Submit credit application to lenders",
+            "Communicate approval status to customer",
+            "Finalize loan terms and monthly payment"
+          ],
+          "keyFields": [
+            "credit_tier",
+            "lender",
+            "apr",
+            "loan_term",
+            "monthly_payment"
+          ]
+        }
+      },
+      {
+        "stageId": "closed_won",
+        "label": "Sold",
+        "displayOrder": 6,
+        "probability": 1.0,
+        "description": "Deal completed - vehicle delivered",
+        "metadata": {
+          "isClosed": true,
+          "isWon": true,
+          "requiredActions": [
+            "Complete all paperwork",
+            "Deliver vehicle with full tank",
+            "Explain warranty and service",
+            "Request Google review"
+          ],
+          "automations": [
+            "Send thank you email",
+            "Send review request after 3 days",
+            "Add to service reminder sequence"
+          ]
+        }
+      },
+      {
+        "stageId": "closed_lost",
+        "label": "Lost",
+        "displayOrder": 7,
+        "probability": 0,
+        "description": "Deal did not close",
+        "metadata": {
+          "isClosed": true,
+          "isWon": false,
+          "requiredFields": [
+            "reason_lost"
+          ],
+          "automations": [
+            "Add to 'Be Back' nurture sequence",
+            "Schedule 30-day follow-up task"
+          ]
+        }
+      }
+    ]
+  },
+  "settings": {
+    "defaultStage": "new_lead",
+    "winProbabilityMethod": "stage_based",
+    "dealRotting": {
+      "enabled": true,
+      "warningDays": 7,
+      "criticalDays": 14
+    },
+    "notifications": {
+      "stageChange": true,
+      "dealRotting": true,
+      "newDeal": true
+    }
+  },
+  "instructions": {
+    "howToImport": [
+      "1. Go to HubSpot Settings > Objects > Deals",
+      "2. Click 'Pipelines' tab",
+      "3. Click 'Create pipeline' or edit existing",
+      "4. Add stages in the order shown above",
+      "5. Set probabilities for each stage",
+      "6. Configure stage properties as needed"
+    ],
+    "notes": [
+      "Probability values are used for revenue forecasting",
+      "Days in stage thresholds trigger rotting alerts",
+      "Lost deals require reason_lost to be captured"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gemini:*)",
+      "WebSearch",
+      "WebFetch(domain:urauto.ai)",
+      "WebFetch(domain:au.linkedin.com)",
+      "WebFetch(domain:fasttrackmotors.com)",
+      "Bash(chmod:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

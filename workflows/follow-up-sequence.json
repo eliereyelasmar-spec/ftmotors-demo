@@ -1,0 +1,99 @@
+{
+  "name": "FTM - Lead Follow-Up Sequence",
+  "description": "Automated follow-up sequence for leads who haven't converted",
+  "workflowType": "sequence",
+  "triggerConditions": {
+    "dealStage": "contacted",
+    "daysInStage": 2,
+    "noActivity": true
+  },
+  "sequence": [
+    {
+      "day": 0,
+      "action": "sms",
+      "template": {
+        "name": "Day 0 - Initial Follow-up",
+        "body": "Hi {{firstName}}! This is {{salesperson}} from Fast Track Motors. I wanted to follow up on your interest in the {{vehicleInterest}}. Are you still looking? I can answer any questions you have. Just reply or call me at (201) 340-6400. 🚗"
+      }
+    },
+    {
+      "day": 2,
+      "action": "email",
+      "template": {
+        "name": "Day 2 - Value Add Email",
+        "subject": "{{firstName}}, quick question about your car search",
+        "body": "Hi {{firstName}},\n\nI hope your car search is going well! I noticed you were interested in {{vehicleInterest}}.\n\nI wanted to let you know:\n• We just got some new inventory that might interest you\n• We work with ALL credit situations - don't let that hold you back\n• Our finance team can usually get same-day approvals\n\nWould you like me to send you some options in your price range?\n\nJust reply to this email or call/text me at (201) 340-6400.\n\nBest,\n{{salesperson}}\nFast Track Motors"
+      }
+    },
+    {
+      "day": 4,
+      "action": "sms",
+      "template": {
+        "name": "Day 4 - Urgency SMS",
+        "body": "Hey {{firstName}}! Quick heads up - the {{vehicleInterest}} you were looking at has been getting a lot of interest. Want me to hold it for you? LMK! - {{salesperson}}, Fast Track Motors"
+      }
+    },
+    {
+      "day": 7,
+      "action": "email",
+      "template": {
+        "name": "Day 7 - Alternative Options",
+        "subject": "Some alternatives you might like, {{firstName}}",
+        "body": "Hi {{firstName}},\n\nI know finding the right car can take time. I put together a few alternatives that might work for you:\n\n[Insert 3 similar vehicles in budget]\n\nAll of these are ready for test drives - just let me know what day works for you.\n\nNo pressure, just here to help when you're ready!\n\n{{salesperson}}\n(201) 340-6400"
+      }
+    },
+    {
+      "day": 14,
+      "action": "sms",
+      "template": {
+        "name": "Day 14 - Check-in",
+        "body": "Hi {{firstName}}, just checking in! Still looking for a vehicle? We have some great deals right now. Let me know if I can help! - Fast Track Motors 🚗"
+      }
+    },
+    {
+      "day": 30,
+      "action": "email",
+      "template": {
+        "name": "Day 30 - Long-term nurture",
+        "subject": "We're still here when you're ready, {{firstName}}",
+        "body": "Hi {{firstName}},\n\nI hope all is well! I wanted to reach out one more time.\n\nWhenever you're ready to get into a new vehicle, we're here. We've helped thousands of customers get approved - even with challenging credit situations.\n\nJust reply to this email or call us at (201) 340-6400.\n\nNo pressure, no games - just good service.\n\nBest,\nThe Fast Track Motors Team"
+      }
+    }
+  ],
+  "exitConditions": [
+    {
+      "condition": "dealStageChanged",
+      "action": "exitSequence"
+    },
+    {
+      "condition": "customerReplied",
+      "action": "exitSequence"
+    },
+    {
+      "condition": "appointmentBooked",
+      "action": "exitSequence"
+    },
+    {
+      "condition": "optedOut",
+      "action": "exitSequence"
+    }
+  ],
+  "n8nImplementation": {
+    "notes": [
+      "This sequence should be implemented as multiple scheduled workflows",
+      "Use HubSpot deal properties to track sequence progress",
+      "Add 'sequence_day' custom property to track position",
+      "Check exit conditions before each send"
+    ],
+    "requiredNodes": [
+      "Schedule Trigger (daily at 10 AM)",
+      "HubSpot - Get deals in 'contacted' stage",
+      "Code - Calculate days since last activity",
+      "Switch - Route to correct message type",
+      "Twilio - Send SMS",
+      "SMTP/SendGrid - Send Email",
+      "HubSpot - Update deal with activity"
+    ]
+  },
+  "tags": ["Fast Track Motors", "Follow-up", "Nurture", "Sales"]
+}

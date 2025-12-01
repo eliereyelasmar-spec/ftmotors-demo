@@ -1,0 +1,150 @@
+{
+  "name": "FTM - Google Review Request",
+  "description": "Requests Google reviews from happy customers after purchase or service",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 14
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [100, 300],
+      "id": "daily-trigger",
+      "name": "Run Daily at 2 PM"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.hubapi.com/crm/v3/objects/deals/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "filterGroups",
+              "value": "[{\"filters\":[{\"propertyName\":\"dealstage\",\"operator\":\"EQ\",\"value\":\"closed_won\"},{\"propertyName\":\"closedate\",\"operator\":\"BETWEEN\",\"value\":\"{{threesDaysAgo}}\",\"highValue\":\"{{threeDaysAgo}}\"}]}]"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [300, 300],
+      "id": "get-recent-sales",
+      "name": "Get Sales from 3 Days Ago",
+      "notes": "Wait 3 days after purchase before requesting review"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.review_requested }}",
+              "operation": "notEqual",
+              "value2": "true"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "id": "check-not-already-sent",
+      "name": "Review Not Already Requested?"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
+        "to": "={{ $json.contact.phone }}",
+        "body": "=Hi {{ $json.contact.firstname }}! 🎉\n\nCongrats again on your new {{ $json.vehicle_year }} {{ $json.vehicle_make }} {{ $json.vehicle_model }}!\n\nWe hope you're loving it. Would you mind taking 30 seconds to share your experience?\n\n⭐ Leave a review: https://g.page/r/fasttrackmotorspaterson/review\n\nYour review helps other families find honest, reliable car buying - just like you did.\n\nThank you!\n- The Fast Track Motors Team"
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [700, 200],
+      "id": "send-review-sms",
+      "name": "Send Review Request SMS"
+    },
+    {
+      "parameters": {
+        "fromEmail": "reviews@fasttrackmotors.com",
+        "toEmail": "={{ $json.contact.email }}",
+        "subject": "={{ $json.contact.firstname }}, how was your experience at Fast Track Motors?",
+        "emailType": "html",
+        "html": "=<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'><h2 style='color:#1B66FF;'>Congratulations on your new {{ $json.vehicle_year }} {{ $json.vehicle_make }} {{ $json.vehicle_model }}! 🎉</h2><p>Hi {{ $json.contact.firstname }},</p><p>We hope you're enjoying your new ride! It was a pleasure helping you find the perfect vehicle.</p><p>Would you take a moment to share your experience? Your feedback helps other families make confident decisions when shopping for a car.</p><div style='text-align:center;margin:30px 0;'><a href='https://g.page/r/fasttrackmotorspaterson/review' style='background:#1B66FF;color:white;padding:15px 30px;text-decoration:none;border-radius:8px;font-weight:bold;'>⭐ Leave a Google Review</a></div><p>Thank you for choosing Fast Track Motors. We're here whenever you need us!</p><p>Best regards,<br><strong>The Fast Track Motors Team</strong><br>(201) 340-6400</p></div>"
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [700, 400],
+      "id": "send-review-email",
+      "name": "Send Review Request Email"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/deals/{{ $json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "properties",
+              "value": "{\"review_requested\":\"true\",\"review_requested_date\":\"{{ $now.format('YYYY-MM-DD') }}\"}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300],
+      "id": "mark-review-sent",
+      "name": "Mark Review Requested in HubSpot"
+    }
+  ],
+  "connections": {
+    "Run Daily at 2 PM": {
+      "main": [[{"node": "Get Sales from 3 Days Ago", "type": "main", "index": 0}]]
+    },
+    "Get Sales from 3 Days Ago": {
+      "main": [[{"node": "Review Not Already Requested?", "type": "main", "index": 0}]]
+    },
+    "Review Not Already Requested?": {
+      "main": [
+        [
+          {"node": "Send Review Request SMS", "type": "main", "index": 0},
+          {"node": "Send Review Request Email", "type": "main", "index": 0}
+        ],
+        []
+      ]
+    },
+    "Send Review Request SMS": {
+      "main": [[{"node": "Mark Review Requested in HubSpot", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "configuration": {
+    "googleReviewLink": "https://g.page/r/fasttrackmotorspaterson/review",
+    "waitDaysAfterPurchase": 3,
+    "sendTime": "14:00",
+    "notes": [
+      "Wait 3 days to let customer enjoy the vehicle first",
+      "Send at 2 PM when people are more likely to respond",
+      "Track review_requested property to avoid duplicate sends",
+      "Customize review link with actual Google Business Profile"
+    ]
+  },
+  "tags": ["Fast Track Motors", "Reviews", "Customer Success"]
+}

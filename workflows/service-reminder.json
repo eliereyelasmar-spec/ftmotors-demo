@@ -1,0 +1,161 @@
+{
+  "name": "FTM - Service Reminder Campaigns",
+  "description": "Automated reminders for oil changes and maintenance based on time/mileage",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "weeksInterval": 1,
+              "triggerAtDay": 1,
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [100, 300],
+      "id": "weekly-trigger",
+      "name": "Run Weekly (Mondays 10 AM)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "filterGroups",
+              "value": "[{\"filters\":[{\"propertyName\":\"last_service_date\",\"operator\":\"LT\",\"value\":\"{{threeMonthsAgo}}\"}]}]"
+            },
+            {
+              "name": "properties",
+              "value": "[\"firstname\",\"lastname\",\"email\",\"phone\",\"customer_vehicles\",\"last_service_date\",\"last_service_mileage\"]"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [300, 300],
+      "id": "get-due-for-service",
+      "name": "Get Customers Due for Service"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.phone }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "id": "has-phone",
+      "name": "Has Phone Number?"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
+        "to": "={{ $json.phone }}",
+        "body": "=Hi {{ $json.firstname }}! 🔧\n\nIt's been a while since your last service at Fast Track Motors.\n\nTime for an oil change? We've got you covered!\n\n🛢️ Oil Change Special: $39.99\n✅ Multi-point inspection included\n⏱️ Done in 30-45 minutes\n\n📞 Book now: (201) 340-6400\n📍 509 10th Ave, Paterson\n\nReply STOP to opt out."
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [700, 200],
+      "id": "send-service-sms",
+      "name": "Send Service Reminder SMS"
+    },
+    {
+      "parameters": {
+        "fromEmail": "service@fasttrackmotors.com",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.firstname }}, time for a quick checkup?",
+        "emailType": "html",
+        "html": "=<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'><h2 style='color:#1B66FF;'>Hey {{ $json.firstname }}, it's been a while! 🔧</h2><p>We noticed it's been over 3 months since your last visit to Fast Track Motors.</p><p>Regular maintenance keeps your {{ $json.customer_vehicles || 'vehicle' }} running smoothly and can prevent costly repairs down the road.</p><div style='background:#f5f5f5;padding:20px;border-radius:8px;margin:20px 0;'><h3 style='margin-top:0;'>🛢️ Oil Change Special</h3><p style='font-size:24px;font-weight:bold;color:#1B66FF;margin:10px 0;'>$39.99</p><ul style='margin:0;padding-left:20px;'><li>Full synthetic blend oil</li><li>New oil filter</li><li>Multi-point safety inspection</li><li>Fluid top-off</li></ul><p style='margin-bottom:0;font-size:14px;'>⏱️ Done in 30-45 minutes</p></div><div style='text-align:center;margin:30px 0;'><a href='tel:+12013406400' style='background:#1B66FF;color:white;padding:15px 30px;text-decoration:none;border-radius:8px;font-weight:bold;margin-right:10px;'>📞 Call to Book</a></div><p>Or stop by anytime during business hours:<br><strong>Monday - Saturday: 9 AM - 7 PM</strong><br>509 10th Avenue, Paterson, NJ</p><p>See you soon!</p><p>The Fast Track Motors Service Team</p></div>"
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [700, 400],
+      "id": "send-service-email",
+      "name": "Send Service Reminder Email"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/contacts/{{ $json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "properties",
+              "value": "{\"last_service_reminder\":\"{{ $now.format('YYYY-MM-DD') }}\"}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300],
+      "id": "update-reminder-date",
+      "name": "Update Last Reminder Date"
+    }
+  ],
+  "connections": {
+    "Run Weekly (Mondays 10 AM)": {
+      "main": [[{"node": "Get Customers Due for Service", "type": "main", "index": 0}]]
+    },
+    "Get Customers Due for Service": {
+      "main": [[{"node": "Has Phone Number?", "type": "main", "index": 0}]]
+    },
+    "Has Phone Number?": {
+      "main": [
+        [
+          {"node": "Send Service Reminder SMS", "type": "main", "index": 0},
+          {"node": "Send Service Reminder Email", "type": "main", "index": 0}
+        ],
+        [{"node": "Send Service Reminder Email", "type": "main", "index": 0}]
+      ]
+    },
+    "Send Service Reminder SMS": {
+      "main": [[{"node": "Update Last Reminder Date", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "configuration": {
+    "reminderIntervals": {
+      "oilChange": "3 months or 3,000 miles",
+      "tireRotation": "6 months or 6,000 miles",
+      "majorService": "12 months or 12,000 miles"
+    },
+    "requiredProperties": [
+      "last_service_date",
+      "last_service_mileage",
+      "customer_vehicles",
+      "last_service_reminder"
+    ],
+    "notes": [
+      "Run weekly on Mondays to catch customers due for service",
+      "3-month interval for oil change reminders (conservative)",
+      "Track last_service_reminder to avoid over-communicating",
+      "Consider mileage-based reminders if odometer data available"
+    ]
+  },
+  "tags": ["Fast Track Motors", "Service", "Retention", "Reminders"]
+}

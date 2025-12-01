@@ -1,0 +1,220 @@
+{
+  "leadScoringModel": {
+    "name": "Fast Track Motors Lead Score",
+    "description": "AI-powered lead quality score to prioritize follow-up",
+    "maxScore": 100,
+    "scoringCategories": [
+      {
+        "category": "Contact Engagement",
+        "maxPoints": 30,
+        "criteria": [
+          {
+            "name": "Responded to outreach",
+            "points": 10,
+            "condition": "Contact replied to email, text, or call"
+          },
+          {
+            "name": "Inbound call",
+            "points": 8,
+            "condition": "Contact initiated phone call"
+          },
+          {
+            "name": "Multiple page views",
+            "points": 5,
+            "condition": "Viewed 3+ pages on website"
+          },
+          {
+            "name": "Form submission",
+            "points": 7,
+            "condition": "Completed any lead capture form"
+          }
+        ]
+      },
+      {
+        "category": "Purchase Intent",
+        "maxPoints": 35,
+        "criteria": [
+          {
+            "name": "Specific vehicle mentioned",
+            "points": 10,
+            "condition": "Named a specific year/make/model"
+          },
+          {
+            "name": "Test drive scheduled",
+            "points": 15,
+            "condition": "Has scheduled test drive appointment"
+          },
+          {
+            "name": "Asked about financing",
+            "points": 8,
+            "condition": "Inquired about financing or monthly payments"
+          },
+          {
+            "name": "Mentioned trade-in",
+            "points": 7,
+            "condition": "Has vehicle to trade"
+          },
+          {
+            "name": "Ready to buy today",
+            "points": 10,
+            "condition": "Indicated urgency or immediate need"
+          }
+        ]
+      },
+      {
+        "category": "Qualification Factors",
+        "maxPoints": 25,
+        "criteria": [
+          {
+            "name": "Budget matches inventory",
+            "points": 10,
+            "condition": "Stated budget aligns with available vehicles"
+          },
+          {
+            "name": "Local zip code",
+            "points": 5,
+            "condition": "Within 15 miles of dealership"
+          },
+          {
+            "name": "Credit situation known",
+            "points": 5,
+            "condition": "Credit tier identified"
+          },
+          {
+            "name": "Down payment available",
+            "points": 5,
+            "condition": "Has money for down payment"
+          }
+        ]
+      },
+      {
+        "category": "Lead Source Quality",
+        "maxPoints": 10,
+        "criteria": [
+          {
+            "name": "Referral",
+            "points": 10,
+            "condition": "Lead source is referral"
+          },
+          {
+            "name": "Repeat customer",
+            "points": 10,
+            "condition": "Previously purchased from us"
+          },
+          {
+            "name": "CarGurus/Car Sites",
+            "points": 7,
+            "condition": "From automotive marketplace"
+          },
+          {
+            "name": "Google Ad",
+            "points": 6,
+            "condition": "Paid search lead"
+          },
+          {
+            "name": "Walk-in",
+            "points": 8,
+            "condition": "Physically came to lot"
+          },
+          {
+            "name": "AI Voice Assistant",
+            "points": 7,
+            "condition": "Captured via Voice AI"
+          },
+          {
+            "name": "Website organic",
+            "points": 5,
+            "condition": "Organic website visitor"
+          }
+        ]
+      }
+    ],
+    "scoreThresholds": [
+      {
+        "label": "Hot Lead",
+        "minScore": 70,
+        "maxScore": 100,
+        "color": "#EF4444",
+        "action": "Immediate follow-up required (within 5 minutes)",
+        "priority": 1
+      },
+      {
+        "label": "Warm Lead",
+        "minScore": 40,
+        "maxScore": 69,
+        "color": "#F59E0B",
+        "action": "Follow up within 1 hour",
+        "priority": 2
+      },
+      {
+        "label": "Cool Lead",
+        "minScore": 20,
+        "maxScore": 39,
+        "color": "#3B82F6",
+        "action": "Follow up within 24 hours, add to nurture sequence",
+        "priority": 3
+      },
+      {
+        "label": "Cold Lead",
+        "minScore": 0,
+        "maxScore": 19,
+        "color": "#6B7280",
+        "action": "Add to long-term nurture sequence",
+        "priority": 4
+      }
+    ],
+    "decayRules": [
+      {
+        "name": "No activity decay",
+        "condition": "No contact activity for 7 days",
+        "pointsDeducted": 5
+      },
+      {
+        "name": "No response decay",
+        "condition": "No response to 3+ outreach attempts",
+        "pointsDeducted": 10
+      },
+      {
+        "name": "Aged lead decay",
+        "condition": "Lead age exceeds 30 days without conversion",
+        "pointsDeducted": 15
+      }
+    ],
+    "automations": [
+      {
+        "trigger": "Score reaches 70+",
+        "action": "Send SMS alert to on-duty salesperson"
+      },
+      {
+        "trigger": "Score drops below 20",
+        "action": "Move to long-term nurture workflow"
+      },
+      {
+        "trigger": "Test drive scheduled",
+        "action": "Add 15 points, notify salesperson"
+      },
+      {
+        "trigger": "No activity 7 days",
+        "action": "Deduct 5 points, trigger re-engagement"
+      }
+    ]
+  },
+  "implementation": {
+    "hubspotSetup": [
+      "1. Create 'ftm_lead_score' number property on contacts",
+      "2. Create workflow to calculate score based on criteria",
+      "3. Create workflow to apply decay rules daily",
+      "4. Create list views filtered by score thresholds",
+      "5. Set up notifications for hot leads"
+    ],
+    "n8nIntegration": [
+      "n8n can calculate lead scores on form submissions",
+      "Use HubSpot API to update ftm_lead_score property",
+      "Trigger SMS/Slack alerts for hot leads"
+    ],
+    "manualOverride": [
+      "Salespeople can manually boost score with notes",
+      "Manager can mark leads as 'Priority' regardless of score"
+    ]
+  }
+}

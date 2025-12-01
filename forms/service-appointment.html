@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Service Appointment - Fast Track Motors</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1B66FF;
+            --charcoal: #121212;
+            --charcoal-light: #1a1a1a;
+            --silver: #C8C8C8;
+            --white: #F8F9FB;
+            --success: #10B981;
+            --error: #EF4444;
+            --warning: #F59E0B;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--charcoal);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .form-container {
+            background: var(--charcoal-light);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 540px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-logo span { color: var(--primary); }
+
+        .form-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-subtitle {
+            color: var(--silver);
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--white);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group label .required { color: var(--error); }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--white);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(27, 102, 255, 0.05);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder { color: rgba(200, 200, 200, 0.5); }
+
+        .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23C8C8C8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.25rem;
+            padding-right: 3rem;
+        }
+
+        .form-group select option {
+            background: var(--charcoal);
+            color: var(--white);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .service-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .service-option {
+            position: relative;
+        }
+
+        .service-option input {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .service-option label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        .service-option input:checked + label {
+            background: rgba(27, 102, 255, 0.15);
+            border-color: var(--primary);
+        }
+
+        .service-option label:hover {
+            border-color: rgba(27, 102, 255, 0.5);
+        }
+
+        .urgent-notice {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .urgent-notice.show {
+            display: block;
+        }
+
+        .urgent-notice h4 {
+            color: var(--warning);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .urgent-notice p {
+            color: var(--silver);
+            font-size: 0.85rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #1B66FF 0%, #0EA5E9 100%);
+            border: none;
+            border-radius: 12px;
+            color: var(--white);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(27, 102, 255, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .form-footer p {
+            color: var(--silver);
+            font-size: 0.85rem;
+        }
+
+        .form-footer a { color: var(--primary); text-decoration: none; }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.5rem;
+        }
+
+        .success-message h3 {
+            color: var(--white);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-message p {
+            color: var(--silver);
+            margin-bottom: 1rem;
+        }
+
+        .success-details {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .success-details p {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .success-details strong { color: var(--white); }
+
+        @media (max-width: 480px) {
+            .form-container { padding: 2rem 1.5rem; }
+            .form-row, .form-row-3, .service-options { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <div class="form-logo">Fast Track <span>Motors</span></div>
+            <h1 class="form-title">Book Service Appointment</h1>
+            <p class="form-subtitle">Keep your vehicle running smoothly. Our certified technicians are ready to help.</p>
+        </div>
+
+        <form id="serviceForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name <span class="required">*</span></label>
+                    <input type="text" name="firstName" required placeholder="John">
+                </div>
+                <div class="form-group">
+                    <label>Last Name <span class="required">*</span></label>
+                    <input type="text" name="lastName" required placeholder="Smith">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Email <span class="required">*</span></label>
+                    <input type="email" name="email" required placeholder="john@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Phone <span class="required">*</span></label>
+                    <input type="tel" name="phone" required placeholder="(201) 555-0123">
+                </div>
+            </div>
+
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label>Vehicle Year <span class="required">*</span></label>
+                    <select name="vehicleYear" required>
+                        <option value="">Year...</option>
+                        <script>
+                            const currentYear = new Date().getFullYear();
+                            for (let y = currentYear + 1; y >= 2000; y--) {
+                                document.write(`<option value="${y}">${y}</option>`);
+                            }
+                        </script>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Make <span class="required">*</span></label>
+                    <input type="text" name="vehicleMake" required placeholder="Honda">
+                </div>
+                <div class="form-group">
+                    <label>Model <span class="required">*</span></label>
+                    <input type="text" name="vehicleModel" required placeholder="Accord">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Service Needed <span class="required">*</span></label>
+                <div class="service-options">
+                    <div class="service-option">
+                        <input type="checkbox" id="oilChange" name="services" value="oil_change">
+                        <label for="oilChange">🛢️ Oil Change</label>
+                    </div>
+                    <div class="service-option">
+                        <input type="checkbox" id="brakes" name="services" value="brakes">
+                        <label for="brakes">🛑 Brake Service</label>
+                    </div>
+                    <div class="service-option">
+                        <input type="checkbox" id="tires" name="services" value="tires">
+                        <label for="tires">🔘 Tires/Rotation</label>
+                    </div>
+                    <div class="service-option">
+                        <input type="checkbox" id="inspection" name="services" value="inspection">
+                        <label for="inspection">✓ NJ Inspection</label>
+                    </div>
+                    <div class="service-option">
+                        <input type="checkbox" id="checkEngine" name="services" value="check_engine">
+                        <label for="checkEngine">⚠️ Check Engine Light</label>
+                    </div>
+                    <div class="service-option">
+                        <input type="checkbox" id="ac" name="services" value="ac">
+                        <label for="ac">❄️ A/C Service</label>
+                    </div>
+                    <div class="service-option">
+                        <input type="checkbox" id="diagnostic" name="services" value="diagnostic">
+                        <label for="diagnostic">🔧 Diagnostic</label>
+                    </div>
+                    <div class="service-option">
+                        <input type="checkbox" id="other" name="services" value="other">
+                        <label for="other">📋 Other</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="urgent-notice" id="urgentNotice">
+                <h4>⚠️ Check Engine Light?</h4>
+                <p>We recommend getting this diagnosed as soon as possible. We'll prioritize your appointment and give you a full diagnostic report.</p>
+            </div>
+
+            <div class="form-group">
+                <label>Describe the Issue (optional)</label>
+                <textarea name="description" placeholder="Any specific concerns, symptoms, or noises you've noticed..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Preferred Date <span class="required">*</span></label>
+                    <input type="date" name="preferredDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Preferred Time <span class="required">*</span></label>
+                    <select name="preferredTime" required>
+                        <option value="">Select time...</option>
+                        <option value="09:00">9:00 AM</option>
+                        <option value="09:30">9:30 AM</option>
+                        <option value="10:00">10:00 AM</option>
+                        <option value="10:30">10:30 AM</option>
+                        <option value="11:00">11:00 AM</option>
+                        <option value="11:30">11:30 AM</option>
+                        <option value="12:00">12:00 PM</option>
+                        <option value="12:30">12:30 PM</option>
+                        <option value="13:00">1:00 PM</option>
+                        <option value="13:30">1:30 PM</option>
+                        <option value="14:00">2:00 PM</option>
+                        <option value="14:30">2:30 PM</option>
+                        <option value="15:00">3:00 PM</option>
+                        <option value="15:30">3:30 PM</option>
+                        <option value="16:00">4:00 PM</option>
+                        <option value="16:30">4:30 PM</option>
+                        <option value="17:00">5:00 PM</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Will you wait or drop off?</label>
+                <select name="waitOrDrop">
+                    <option value="wait">I'll wait</option>
+                    <option value="drop">Drop off (call when ready)</option>
+                    <option value="unsure">Not sure yet</option>
+                </select>
+            </div>
+
+            <button type="submit" class="submit-btn">Book Service Appointment</button>
+        </form>
+
+        <div class="success-message" id="successMessage">
+            <div class="success-icon">✓</div>
+            <h3>Appointment Booked!</h3>
+            <p>We'll have a technician ready for you. Expect a confirmation text shortly.</p>
+            <div class="success-details" id="appointmentDetails"></div>
+        </div>
+
+        <div class="form-footer">
+            <p>Need immediate help? Call <a href="tel:+12013406400">(201) 340-6400</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Set minimum date
+        const dateInput = document.querySelector('input[name="preferredDate"]');
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.setAttribute('min', today);
+
+        // Show urgent notice for check engine light
+        document.getElementById('checkEngine').addEventListener('change', function() {
+            document.getElementById('urgentNotice').classList.toggle('show', this.checked);
+        });
+
+        // Form submission
+        document.getElementById('serviceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const submitBtn = form.querySelector('.submit-btn');
+            const successMessage = document.getElementById('successMessage');
+
+            // Get selected services
+            const services = [];
+            form.querySelectorAll('input[name="services"]:checked').forEach(cb => {
+                services.push(cb.value);
+            });
+
+            if (services.length === 0) {
+                alert('Please select at least one service.');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Booking...';
+
+            const formData = {
+                formType: 'service_appointment',
+                firstName: form.firstName.value,
+                lastName: form.lastName.value,
+                email: form.email.value,
+                phone: form.phone.value,
+                vehicleYear: form.vehicleYear.value,
+                vehicleMake: form.vehicleMake.value,
+                vehicleModel: form.vehicleModel.value,
+                services: services,
+                description: form.description.value,
+                preferredDate: form.preferredDate.value,
+                preferredTime: form.preferredTime.value,
+                waitOrDrop: form.waitOrDrop.value,
+                source: 'website',
+                submittedAt: new Date().toISOString()
+            };
+
+            try {
+                // Configure webhook URL - update this with your n8n webhook URL
+                const webhookUrl = window.FTM_WEBHOOK_URL || 'https://your-n8n-instance.app/webhook/ftm-lead';
+
+                // Send to webhook
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData),
+                    mode: 'cors'
+                });
+
+                if (!response.ok && webhookUrl.includes('your-n8n-instance')) {
+                    // Demo mode - simulate success if using placeholder URL
+                    console.log('Demo mode: Form data would be sent:', formData);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                } else if (!response.ok) {
+                    throw new Error('Webhook failed');
+                }
+
+                const dateObj = new Date(formData.preferredDate + 'T' + formData.preferredTime);
+                const displayDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+                const displayTime = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+                const serviceNames = {
+                    oil_change: 'Oil Change',
+                    brakes: 'Brake Service',
+                    tires: 'Tires/Rotation',
+                    inspection: 'NJ Inspection',
+                    check_engine: 'Check Engine Diagnostic',
+                    ac: 'A/C Service',
+                    diagnostic: 'Diagnostic',
+                    other: 'Other Service'
+                };
+
+                document.getElementById('appointmentDetails').innerHTML = `
+                    <p><strong>Vehicle:</strong> ${formData.vehicleYear} ${formData.vehicleMake} ${formData.vehicleModel}</p>
+                    <p><strong>Service:</strong> ${services.map(s => serviceNames[s]).join(', ')}</p>
+                    <p><strong>Date:</strong> ${displayDate}</p>
+                    <p><strong>Time:</strong> ${displayTime}</p>
+                    <p><strong>Location:</strong> 509 10th Ave, Paterson, NJ</p>
+                `;
+
+                form.style.display = 'none';
+                successMessage.style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Book Service Appointment';
+                alert('Something went wrong. Please try again or call us directly.');
+            }
+        });
+
+        // Phone formatting
+        document.querySelector('input[name="phone"]').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 6) {
+                value = `(${value.slice(0,3)}) ${value.slice(3,6)}-${value.slice(6,10)}`;
+            } else if (value.length >= 3) {
+                value = `(${value.slice(0,3)}) ${value.slice(3)}`;
+            }
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>

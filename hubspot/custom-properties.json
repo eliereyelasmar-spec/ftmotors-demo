@@ -1,0 +1,358 @@
+{
+  "contactProperties": [
+    {
+      "name": "lead_source",
+      "label": "Lead Source",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_info",
+      "options": [
+        {"label": "Walk-In", "value": "walk_in"},
+        {"label": "Phone Call", "value": "phone_call"},
+        {"label": "Website Form", "value": "website_form"},
+        {"label": "AI Voice Assistant", "value": "voice_ai"},
+        {"label": "Referral", "value": "referral"},
+        {"label": "CarGurus", "value": "cargurus"},
+        {"label": "Facebook Marketplace", "value": "facebook"},
+        {"label": "Google Ad", "value": "google_ad"},
+        {"label": "Repeat Customer", "value": "repeat"},
+        {"label": "Other", "value": "other"}
+      ]
+    },
+    {
+      "name": "credit_situation",
+      "label": "Credit Situation",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_info",
+      "options": [
+        {"label": "Excellent (720+)", "value": "excellent"},
+        {"label": "Good (680-719)", "value": "good"},
+        {"label": "Fair (620-679)", "value": "fair"},
+        {"label": "Poor (Below 620)", "value": "poor"},
+        {"label": "No Credit", "value": "no_credit"},
+        {"label": "Unknown", "value": "unknown"}
+      ]
+    },
+    {
+      "name": "vehicle_interest",
+      "label": "Vehicle Interest",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_info",
+      "description": "Specific vehicle(s) the customer is interested in"
+    },
+    {
+      "name": "budget_range",
+      "label": "Budget Range",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_info",
+      "options": [
+        {"label": "Under $10,000", "value": "under_10k"},
+        {"label": "$10,000 - $15,000", "value": "10k_15k"},
+        {"label": "$15,000 - $20,000", "value": "15k_20k"},
+        {"label": "$20,000 - $25,000", "value": "20k_25k"},
+        {"label": "$25,000 - $30,000", "value": "25k_30k"},
+        {"label": "Over $30,000", "value": "over_30k"}
+      ]
+    },
+    {
+      "name": "preferred_contact_method",
+      "label": "Preferred Contact Method",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_info",
+      "options": [
+        {"label": "Phone Call", "value": "phone"},
+        {"label": "Text/SMS", "value": "text"},
+        {"label": "Email", "value": "email"},
+        {"label": "Any", "value": "any"}
+      ]
+    },
+    {
+      "name": "has_trade_in",
+      "label": "Has Trade-In",
+      "type": "bool",
+      "fieldType": "booleancheckbox",
+      "groupName": "dealership_info"
+    },
+    {
+      "name": "trade_in_vehicle",
+      "label": "Trade-In Vehicle",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_info",
+      "description": "Year Make Model of trade-in vehicle"
+    },
+    {
+      "name": "primary_language",
+      "label": "Primary Language",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_info",
+      "options": [
+        {"label": "English", "value": "english"},
+        {"label": "Spanish", "value": "spanish"},
+        {"label": "Other", "value": "other"}
+      ]
+    },
+    {
+      "name": "customer_vehicles",
+      "label": "Customer's Vehicles",
+      "type": "string",
+      "fieldType": "textarea",
+      "groupName": "dealership_info",
+      "description": "Vehicles owned by this customer (purchased from us or service customers)"
+    },
+    {
+      "name": "ftm_lead_score",
+      "label": "FTM Lead Score",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_info",
+      "description": "AI-calculated lead quality score (0-100)"
+    }
+  ],
+  "dealProperties": [
+    {
+      "name": "stock_number",
+      "label": "Stock Number",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_deal_info",
+      "description": "Vehicle stock/inventory number"
+    },
+    {
+      "name": "vehicle_vin",
+      "label": "VIN",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "vehicle_year",
+      "label": "Vehicle Year",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "vehicle_make",
+      "label": "Vehicle Make",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "vehicle_model",
+      "label": "Vehicle Model",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "vehicle_trim",
+      "label": "Vehicle Trim",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "vehicle_mileage",
+      "label": "Vehicle Mileage",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "asking_price",
+      "label": "Asking Price",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "trade_in_value",
+      "label": "Trade-In Value",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "down_payment",
+      "label": "Down Payment",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "amount_financed",
+      "label": "Amount Financed",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "monthly_payment",
+      "label": "Monthly Payment",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "loan_term_months",
+      "label": "Loan Term (Months)",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_deal_info",
+      "options": [
+        {"label": "36 months", "value": "36"},
+        {"label": "48 months", "value": "48"},
+        {"label": "60 months", "value": "60"},
+        {"label": "72 months", "value": "72"},
+        {"label": "84 months", "value": "84"}
+      ]
+    },
+    {
+      "name": "apr",
+      "label": "APR",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "lender",
+      "label": "Lender",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "gross_profit",
+      "label": "Gross Profit",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "test_drive_date",
+      "label": "Test Drive Date",
+      "type": "datetime",
+      "fieldType": "date",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "delivery_date",
+      "label": "Delivery Date",
+      "type": "datetime",
+      "fieldType": "date",
+      "groupName": "dealership_deal_info"
+    },
+    {
+      "name": "reason_lost",
+      "label": "Reason Lost",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_deal_info",
+      "options": [
+        {"label": "Price - Too High", "value": "price_high"},
+        {"label": "Bought Elsewhere", "value": "bought_elsewhere"},
+        {"label": "Credit Declined", "value": "credit_declined"},
+        {"label": "No Response", "value": "no_response"},
+        {"label": "Changed Mind", "value": "changed_mind"},
+        {"label": "Trade-In Value", "value": "trade_value"},
+        {"label": "Vehicle Not Available", "value": "not_available"},
+        {"label": "Other", "value": "other"}
+      ]
+    },
+    {
+      "name": "service_type",
+      "label": "Service Type",
+      "type": "enumeration",
+      "fieldType": "checkbox",
+      "groupName": "dealership_service_info",
+      "options": [
+        {"label": "Oil Change", "value": "oil_change"},
+        {"label": "Brake Service", "value": "brakes"},
+        {"label": "Tire Service", "value": "tires"},
+        {"label": "NJ Inspection", "value": "inspection"},
+        {"label": "Diagnostic", "value": "diagnostic"},
+        {"label": "A/C Service", "value": "ac"},
+        {"label": "Engine Repair", "value": "engine"},
+        {"label": "Transmission", "value": "transmission"},
+        {"label": "Other", "value": "other"}
+      ]
+    },
+    {
+      "name": "service_vehicle",
+      "label": "Service Vehicle",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_service_info",
+      "description": "Year Make Model of vehicle being serviced"
+    },
+    {
+      "name": "service_mileage",
+      "label": "Service Mileage",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_service_info"
+    },
+    {
+      "name": "appointment_datetime",
+      "label": "Appointment Date/Time",
+      "type": "datetime",
+      "fieldType": "date",
+      "groupName": "dealership_service_info"
+    },
+    {
+      "name": "salesperson",
+      "label": "Salesperson",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_deal_info",
+      "options": [
+        {"label": "Robert", "value": "robert"},
+        {"label": "Ramon", "value": "ramon"},
+        {"label": "Julio", "value": "julio"},
+        {"label": "Leo", "value": "leo"},
+        {"label": "Jorge", "value": "jorge"},
+        {"label": "Isaac", "value": "isaac"},
+        {"label": "David", "value": "david"},
+        {"label": "Ali (Owner)", "value": "ali"}
+      ]
+    }
+  ],
+  "propertyGroups": [
+    {
+      "name": "dealership_info",
+      "label": "Dealership Information",
+      "displayOrder": 0
+    },
+    {
+      "name": "dealership_deal_info",
+      "label": "Deal Information",
+      "displayOrder": 1
+    },
+    {
+      "name": "dealership_service_info",
+      "label": "Service Information",
+      "displayOrder": 2
+    }
+  ],
+  "instructions": {
+    "howToImport": [
+      "1. Go to HubSpot Settings > Properties",
+      "2. Create property groups first",
+      "3. Create each property in the appropriate group",
+      "4. Set field types and options as specified",
+      "5. Mark required fields in deal records as needed"
+    ],
+    "notes": [
+      "Property names use snake_case for API compatibility",
+      "Labels use proper Title Case for UI display",
+      "Salesperson options should be updated with actual staff"
+    ]
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "name": "FTM - Appointment Reminders",
+  "description": "Sends SMS and email reminders 24 hours and 1 hour before appointments",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [100, 300],
+      "id": "schedule-trigger",
+      "name": "Run Hourly"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendarId": "={{ $env.GOOGLE_CALENDAR_ID }}",
+        "returnAll": false,
+        "limit": 50,
+        "options": {
+          "timeMin": "={{ $now.toISO() }}",
+          "timeMax": "={{ $now.plus({hours: 25}).toISO() }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [300, 300],
+      "id": "get-upcoming-appointments",
+      "name": "Get Upcoming Appointments"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.summary }}",
+              "operation": "contains",
+              "value2": "Test Drive"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "id": "filter-valid-appointments",
+      "name": "Filter Appointments"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calculate hours until appointment\nconst appointmentTime = new Date($input.first().json.start.dateTime);\nconst now = new Date();\nconst hoursUntil = (appointmentTime - now) / (1000 * 60 * 60);\n\n// Determine reminder type\nlet reminderType = null;\nif (hoursUntil >= 23 && hoursUntil <= 25) {\n  reminderType = '24_hour';\n} else if (hoursUntil >= 0.5 && hoursUntil <= 1.5) {\n  reminderType = '1_hour';\n}\n\n// Parse customer info from event description\nconst description = $input.first().json.description || '';\nconst phoneMatch = description.match(/Phone:\\s*([\\d\\-\\(\\)\\s]+)/);\nconst nameMatch = description.match(/Name:\\s*([^\\n]+)/);\n\nreturn {\n  ...($input.first().json),\n  hoursUntil: hoursUntil.toFixed(1),\n  reminderType,\n  customerPhone: phoneMatch ? phoneMatch[1].trim() : null,\n  customerName: nameMatch ? nameMatch[1].trim() : 'Valued Customer',\n  appointmentTime: appointmentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),\n  appointmentDate: appointmentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300],
+      "id": "calculate-reminder-type",
+      "name": "Calculate Reminder Type"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.reminderType }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "id": "should-send-reminder",
+      "name": "Should Send Reminder?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.reminderType }}",
+              "operation": "equals",
+              "value2": "24_hour"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1100, 200],
+      "id": "is-24-hour",
+      "name": "Is 24 Hour Reminder?"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
+        "to": "={{ $json.customerPhone }}",
+        "body": "=Hi {{ $json.customerName }}! 👋\n\nThis is a reminder about your appointment at Fast Track Motors TOMORROW:\n\n📅 {{ $json.appointmentDate }}\n⏰ {{ $json.appointmentTime }}\n📍 509 10th Ave, Paterson, NJ\n\n🚗 Please bring your driver's license.\n\nNeed to reschedule? Call us at (201) 340-6400.\n\nSee you soon!\n- Fast Track Motors"
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1300, 100],
+      "id": "send-24h-sms",
+      "name": "Send 24h Reminder SMS"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
+        "to": "={{ $json.customerPhone }}",
+        "body": "=Hi {{ $json.customerName }}! 🚗\n\nJust a quick reminder - your appointment at Fast Track Motors is in about 1 HOUR:\n\n⏰ {{ $json.appointmentTime }}\n📍 509 10th Ave, Paterson, NJ\n\nWe're ready for you! See you soon.\n\n- Fast Track Motors"
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1300, 300],
+      "id": "send-1h-sms",
+      "name": "Send 1h Reminder SMS"
+    }
+  ],
+  "connections": {
+    "Run Hourly": {
+      "main": [[{"node": "Get Upcoming Appointments", "type": "main", "index": 0}]]
+    },
+    "Get Upcoming Appointments": {
+      "main": [[{"node": "Filter Appointments", "type": "main", "index": 0}]]
+    },
+    "Filter Appointments": {
+      "main": [
+        [{"node": "Calculate Reminder Type", "type": "main", "index": 0}],
+        []
+      ]
+    },
+    "Calculate Reminder Type": {
+      "main": [[{"node": "Should Send Reminder?", "type": "main", "index": 0}]]
+    },
+    "Should Send Reminder?": {
+      "main": [
+        [{"node": "Is 24 Hour Reminder?", "type": "main", "index": 0}],
+        []
+      ]
+    },
+    "Is 24 Hour Reminder?": {
+      "main": [
+        [{"node": "Send 24h Reminder SMS", "type": "main", "index": 0}],
+        [{"node": "Send 1h Reminder SMS", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "fast-track-motors-demo"
+  },
+  "tags": ["Fast Track Motors", "Reminders", "Appointments"]
+}
