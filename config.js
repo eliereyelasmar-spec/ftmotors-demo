@@ -7,8 +7,9 @@
 
 window.FTM_CONFIG = {
     // n8n Webhook URL - Update this with your production webhook URL
-    // Example: 'https://your-n8n.app.n8n.cloud/webhook/ftm-lead'
-    webhookUrl: 'https://your-n8n-instance.app/webhook/ftm-lead',
+    // For localhost testing: 'http://localhost:5678/webhook/ftm-lead'
+    // For tunnel (ngrok/cloudflare): 'https://your-tunnel.ngrok.io/webhook/ftm-lead'
+    webhookUrl: 'http://localhost:5678/webhook/ftm-lead',
 
     // Company Information
     company: {
@@ -30,7 +31,7 @@ window.FTM_CONFIG = {
     demo: {
         // When true, forms will simulate success without hitting webhook
         // Set to false in production
-        enabled: true,
+        enabled: false,
 
         // Simulate this delay (ms) for demo submissions
         delay: 1000

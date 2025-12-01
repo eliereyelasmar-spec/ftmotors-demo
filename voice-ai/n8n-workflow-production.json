@@ -1,0 +1,635 @@
+{
+  "name": "FTM - Voice AI Booking Agent (PRODUCTION)",
+  "description": "Production-ready voice call handler via Retell AI with error handling, HubSpot CRM integration, logging, and security",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ftm-voice-agent",
+        "responseMode": "responseNode",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "X-Powered-By",
+                "value": "Revion-Automation"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [100, 400],
+      "id": "webhook-trigger",
+      "name": "Retell Webhook",
+      "webhookId": "ftm-voice-agent"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.headers['user-agent'] }}",
+              "rightValue": "Retell",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combineOperation": "any"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [300, 400],
+      "id": "security-check",
+      "name": "Security Check (Retell Validation)"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ \"error\": \"Unauthorized\", \"message\": \"Invalid webhook source\" }) }}",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [500, 550],
+      "id": "reject-unauthorized",
+      "name": "Reject Unauthorized"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "call_id",
+              "name": "call_id",
+              "value": "={{ $json.body.call.call_id || 'unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "transcript",
+              "name": "transcript",
+              "value": "={{ $json.body.call.transcript || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "from_number",
+              "name": "from_number",
+              "value": "={{ $json.body.call.from_number || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "call_status",
+              "name": "call_status",
+              "value": "={{ $json.body.call.call_status || 'in_progress' }}",
+              "type": "string"
+            },
+            {
+              "id": "timestamp",
+              "name": "timestamp",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [500, 250],
+      "id": "extract-call-data",
+      "name": "Extract Call Data"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "resource": "contact",
+        "email": "={{ $json.from_number.replace(/[^0-9]/g, '') }}@ftm-voice.temp",
+        "additionalFields": {
+          "phone": "={{ $json.from_number }}",
+          "customPropertiesUi": {
+            "customPropertiesValues": [
+              {
+                "property": "lead_source",
+                "value": "Voice AI Call"
+              },
+              {
+                "property": "last_call_timestamp",
+                "value": "={{ $json.timestamp }}"
+              },
+              {
+                "property": "call_id",
+                "value": "={{ $json.call_id }}"
+              }
+            ]
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [700, 100],
+      "id": "create-hubspot-contact",
+      "name": "Create/Update HubSpot Contact",
+      "credentials": {
+        "hubspotApi": {
+          "id": "YOUR_HUBSPOT_CREDENTIAL_ID",
+          "name": "HubSpot - Fast Track Motors"
+        }
+      },
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=The call transcription:\n\n{{ $('Extract Call Data').item.json.transcript }}",
+        "options": {
+          "systemMessage": "=# ROLE AND CONTEXT\nYou are the AI voice receptionist for Fast Track Motors, a premium car dealership in Paterson, NJ.\nPhone: (201) 340-6400\nAddress: 509 10th Avenue, Paterson, NJ 07514\nOwner: Ali Kassab\n\n# CALL INFORMATION\nCall ID: {{ $('Extract Call Data').item.json.call_id }}\nCaller Phone: {{ $('Extract Call Data').item.json.from_number }}\nTimestamp: {{ $('Extract Call Data').item.json.timestamp }}\n\nThe call transcription so far:\n{{ $('Extract Call Data').item.json.transcript }}\n\n# YOUR MISSION\nYour goals: check availability, book test drives, schedule service appointments, capture leads.\nBe professional, friendly, and efficient. You represent a premium dealership.\n\n# CRITICAL RULES\n1. ALWAYS check availability BEFORE confirming any booking\n2. NEVER book an appointment without verifying the time is free\n3. ALWAYS call 'Get many events in Google Calendar' first to verify availability\n4. Only call 'Create an event in Google Calendar' ONCE per booking request\n5. Do NOT book outside business hours (Mon-Sat 9AM-7PM, CLOSED Sunday)\n\n# WORKFLOW: Checking Available Times\n- If the user provides a specific time, check if it's available using get_events\n  - If available: confirm and offer to book\n  - If NOT available: apologize and provide 3 alternative free time slots\n- If the user asks for available times without specifying, provide 3 free time slots\n- Always search within business hours only (9:00 AM - 7:00 PM, Monday-Saturday)\n\n# WORKFLOW: Booking Appointments\nBEFORE booking:\n1. Call 'Get many events in Google Calendar' to verify the time is free\n2. Confirm the customer's chosen time was in your offered list\n3. If they pick a time you didn't offer, check that specific time first\n\nWHEN booking:\n- Only call 'Create an event in Google Calendar' if the time is verified free\n- Format times as ISO 8601 with timezone: \"2024-12-01T14:00:00-05:00\"\n- Include all details in the event:\n  - Summary: \"[TYPE] - [Customer Name]\" (e.g., \"Test Drive - John Smith\")\n  - Description: Customer name, phone ({{ $('Extract Call Data').item.json.from_number }}), vehicle/service details\n\n# WORKFLOW: Rescheduling\n1. Get current appointment details (name, date, time)\n2. Get new preferred time\n3. Call get_events to check new date availability\n4. If free: create_event (new time), then delete_event (old time)\n5. If taken: offer 3 alternative times\n\n# WORKFLOW: Cancelling\n1. Get appointment details (name, date, time)\n2. Confirm cancellation request\n3. Call delete_event\n4. Confirm: \"Your appointment has been cancelled. Can I help you with anything else?\"\n\n# APPOINTMENT TYPES AND DURATIONS\n- Test Drive: 45 minutes\n- Oil Change: 45 minutes\n- Service Appointment: 60 minutes (brake service, tire rotation, etc.)\n- Inspection: 30 minutes\n- Vehicle Purchase Consultation: 60 minutes\n\n# BUSINESS HOURS\nMonday - Saturday: 9:00 AM to 7:00 PM Eastern Time\nSunday: CLOSED\n\nDo NOT book appointments outside these hours.\nIf customer requests Sunday, explain we're closed and offer Monday alternatives.\n\n# TIMEZONE HANDLING\nCurrent date/time: {{ $now }}\nTimezone: America/New_York (UTC-05:00 Eastern Standard Time)\n\nWhen calling create_event, ALWAYS format times as ISO 8601 with timezone offset:\nCORRECT: \"2024-12-01T14:00:00-05:00\"\nWRONG: \"2:00 PM\" or \"14:00\"\n\nNote: DST transitions happen in March (UTC-04:00) and November (UTC-05:00)\n\n# HANDLING ERRORS\n- If Google Calendar API fails, apologize and say: \"I'm having trouble accessing our calendar right now. Can I take your information and have someone call you back within 30 minutes?\"\n- If you can't understand the customer's request after 2 attempts, offer to transfer to a human representative\n\n# TONE AND STYLE\n- Professional but warm\n- Efficient - don't over-explain\n- Confident in the dealership's quality\n- Patient with customers who need clarification\n- If caller speaks Spanish, respond in Spanish (you're bilingual)\n\n# DATA CAPTURE\nAlways try to capture:\n- Customer name (first and last)\n- Phone number (confirm the one calling from: {{ $('Extract Call Data').item.json.from_number }})\n- Email address (if booking appointment)\n- Vehicle of interest (for test drives)\n- Service needed (for service appointments)\n- Preferred contact method\n\nFocus on the customer's LAST request in the transcript.\nDo not repeat actions already completed.\nAct decisively and professionally."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [700, 400],
+      "id": "ai-agent",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {
+          "temperature": 0.3,
+          "maxTokens": 500
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [600, 650],
+      "id": "openai-model",
+      "name": "OpenAI Chat Model (GPT-4.1-mini)",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "YOUR_CALENDAR_ID@gmail.com",
+          "mode": "list",
+          "cachedResultName": "Fast Track Motors Calendar"
+        },
+        "returnAll": "={{ $fromAI('Return_All', 'false', 'boolean') }}",
+        "timeMin": "={{ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [800, 750],
+      "id": "get-events",
+      "name": "Get many events in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "YOUR_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Calendar - Fast Track Motors"
+        }
+      },
+      "continueOnFail": true,
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "YOUR_CALENDAR_ID@gmail.com",
+          "mode": "list",
+          "cachedResultName": "Fast Track Motors Calendar"
+        },
+        "start": "={{ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "description": "={{ $fromAI('Description', `Customer Phone: ${$('Extract Call Data').item.json.from_number}\\nCall ID: ${$('Extract Call Data').item.json.call_id}`, 'string') }}",
+          "summary": "={{ $fromAI('Summary', ``, 'string') }}",
+          "attendees": "={{ $fromAI('Attendees', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [950, 750],
+      "id": "create-event",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "YOUR_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Calendar - Fast Track Motors"
+        }
+      },
+      "continueOnFail": true,
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 500
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "YOUR_CALENDAR_ID@gmail.com",
+          "mode": "list",
+          "cachedResultName": "Fast Track Motors Calendar"
+        },
+        "eventId": "={{ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [1100, 750],
+      "id": "delete-event",
+      "name": "Delete an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "YOUR_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Calendar - Fast Track Motors"
+        }
+      },
+      "continueOnFail": true,
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 500
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "resource": "note",
+        "contactId": "={{ $('Create/Update HubSpot Contact').item.json.id }}",
+        "noteBody": "=**Voice AI Call Transcript**\n\nCall ID: {{ $('Extract Call Data').item.json.call_id }}\nTimestamp: {{ $('Extract Call Data').item.json.timestamp }}\nPhone: {{ $('Extract Call Data').item.json.from_number }}\nStatus: {{ $('Extract Call Data').item.json.call_status }}\n\n---\n\n{{ $('Extract Call Data').item.json.transcript }}\n\n---\n\nAI Response: {{ $('AI Agent').item.json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [1100, 100],
+      "id": "log-transcript-to-hubspot",
+      "name": "Log Transcript to HubSpot",
+      "credentials": {
+        "hubspotApi": {
+          "id": "YOUR_HUBSPOT_CREDENTIAL_ID",
+          "name": "HubSpot - Fast Track Motors"
+        }
+      },
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('AI Agent').item.json.output }}",
+              "rightValue": "booked|scheduled|appointment confirmed",
+              "operator": {
+                "type": "string",
+                "operation": "regex",
+                "regex": {
+                  "flags": "i"
+                }
+              }
+            }
+          ],
+          "combineOperation": "any"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [900, 250],
+      "id": "check-booking-made",
+      "name": "Check if Booking Made"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "resource": "deal",
+        "dealName": "={{ $('Extract Call Data').item.json.from_number }} - Voice AI Lead",
+        "dealStage": "appointmentscheduled",
+        "pipeline": "default",
+        "additionalFields": {
+          "amount": 25000,
+          "dealDescription": "=Lead generated via Voice AI receptionist call.\n\nCall ID: {{ $('Extract Call Data').item.json.call_id }}\nTimestamp: {{ $('Extract Call Data').item.json.timestamp }}\n\nAI Summary: {{ $('AI Agent').item.json.output }}",
+          "customPropertiesUi": {
+            "customPropertiesValues": [
+              {
+                "property": "lead_source",
+                "value": "Voice AI"
+              },
+              {
+                "property": "appointment_booked",
+                "value": "true"
+              }
+            ]
+          },
+          "associatedContacts": "={{ $('Create/Update HubSpot Contact').item.json.id }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [1100, 250],
+      "id": "create-hubspot-deal",
+      "name": "Create HubSpot Deal",
+      "credentials": {
+        "hubspotApi": {
+          "id": "YOUR_HUBSPOT_CREDENTIAL_ID",
+          "name": "HubSpot - Fast Track Motors"
+        }
+      },
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/YOUR_SLACK_WEBHOOK_URL",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "=*New Appointment Booked via Voice AI!* 📞\n\nCustomer Phone: {{ $('Extract Call Data').item.json.from_number }}\nCall ID: {{ $('Extract Call Data').item.json.call_id }}\nTimestamp: {{ $('Extract Call Data').item.json.timestamp }}\n\nAI Response:\n{{ $('AI Agent').item.json.output }}\n\n<https://app.hubspot.com/contacts/YOUR_PORTAL_ID/contact/{{ $('Create/Update HubSpot Contact').item.json.id }}|View Contact in HubSpot>"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1300, 250],
+      "id": "slack-notification",
+      "name": "Slack Notification (Booking Alert)",
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "sheet",
+        "operation": "appendRow",
+        "spreadsheetId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Call Logs",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $('Extract Call Data').item.json.timestamp }}",
+            "call_id": "={{ $('Extract Call Data').item.json.call_id }}",
+            "from_number": "={{ $('Extract Call Data').item.json.from_number }}",
+            "call_status": "={{ $('Extract Call Data').item.json.call_status }}",
+            "transcript_length": "={{ $('Extract Call Data').item.json.transcript.length }}",
+            "ai_response": "={{ $('AI Agent').item.json.output }}",
+            "booking_made": "={{ $('Check if Booking Made').item.json }}",
+            "hubspot_contact_id": "={{ $('Create/Update HubSpot Contact').item.json.id || 'N/A' }}",
+            "errors": "={{ $('AI Agent').item.json.error || 'None' }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1300, 550],
+      "id": "log-to-sheets",
+      "name": "Log to Google Sheets (Call History)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets - FTM Call Logs"
+        }
+      },
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $('AI Agent').item.json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [1500, 400],
+      "id": "respond-webhook",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/YOUR_SLACK_WEBHOOK_URL",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "=*Voice AI Workflow Error* ⚠️\n\nCall ID: {{ $('Extract Call Data').item.json.call_id }}\nPhone: {{ $('Extract Call Data').item.json.from_number }}\nTimestamp: {{ $('Extract Call Data').item.json.timestamp }}\n\nError Details:\n```\n{{ $json.error }}\n```\n\nNode: {{ $json.node }}\n\n*Action Required:* Check workflow execution logs"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 550],
+      "id": "error-slack-alert",
+      "name": "Slack Error Alert",
+      "continueOnFail": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Retell Webhook": {
+      "main": [
+        [
+          {
+            "node": "Security Check (Retell Validation)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Security Check (Retell Validation)": {
+      "main": [
+        [
+          {
+            "node": "Extract Call Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject Unauthorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Call Data": {
+      "main": [
+        [
+          {
+            "node": "Create/Update HubSpot Contact",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model (GPT-4.1-mini)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many events in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Check if Booking Made",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Transcript to HubSpot",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log to Google Sheets (Call History)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Booking Made": {
+      "main": [
+        [
+          {
+            "node": "Create HubSpot Deal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create HubSpot Deal": {
+      "main": [
+        [
+          {
+            "node": "Slack Notification (Booking Alert)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "YOUR_ERROR_WORKFLOW_ID"
+  },
+  "versionId": "ftm-voice-agent-production-v1",
+  "meta": {
+    "instanceId": "fast-track-motors-production"
+  },
+  "id": "ftm-voice-agent-production",
+  "tags": ["Fast Track Motors", "Voice AI", "Retell", "Production", "HubSpot", "Monitoring"],
+  "staticData": null
+}

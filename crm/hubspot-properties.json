@@ -1,0 +1,876 @@
+{
+  "apiVersion": "v3",
+  "description": "Fast Track Motors - HubSpot Custom Properties API Schema",
+  "lastUpdated": "2024-12-01",
+  "usage": "Use this JSON to programmatically create custom properties via HubSpot API or n8n workflows",
+  "apiEndpoint": "https://api.hubapi.com/crm/v3/properties/{objectType}",
+  "authentication": "Private App Access Token or OAuth",
+  "propertyGroups": [
+    {
+      "name": "dealership_info",
+      "label": "Dealership Information",
+      "displayOrder": 0,
+      "objectType": "contacts"
+    },
+    {
+      "name": "dealership_deal_info",
+      "label": "Deal Information",
+      "displayOrder": 1,
+      "objectType": "deals"
+    },
+    {
+      "name": "dealership_service_info",
+      "label": "Service Information",
+      "displayOrder": 2,
+      "objectType": "deals"
+    }
+  ],
+  "contactProperties": [
+    {
+      "name": "lead_source",
+      "label": "Lead Source",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_info",
+      "description": "How the customer found Fast Track Motors",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 1,
+      "options": [
+        {
+          "label": "Walk-In",
+          "value": "walk_in",
+          "description": "Customer walked into the dealership",
+          "displayOrder": 0,
+          "hidden": false
+        },
+        {
+          "label": "Phone Call",
+          "value": "phone_call",
+          "description": "Customer called directly",
+          "displayOrder": 1,
+          "hidden": false
+        },
+        {
+          "label": "Website Form",
+          "value": "website_form",
+          "description": "Submitted form on website",
+          "displayOrder": 2,
+          "hidden": false
+        },
+        {
+          "label": "AI Voice Assistant",
+          "value": "voice_ai",
+          "description": "Captured via Retell AI voice receptionist",
+          "displayOrder": 3,
+          "hidden": false
+        },
+        {
+          "label": "Referral",
+          "value": "referral",
+          "description": "Referred by existing customer",
+          "displayOrder": 4,
+          "hidden": false
+        },
+        {
+          "label": "CarGurus",
+          "value": "cargurus",
+          "description": "Lead from CarGurus listing",
+          "displayOrder": 5,
+          "hidden": false
+        },
+        {
+          "label": "Facebook Marketplace",
+          "value": "facebook",
+          "description": "Facebook Marketplace inquiry",
+          "displayOrder": 6,
+          "hidden": false
+        },
+        {
+          "label": "Google Ad",
+          "value": "google_ad",
+          "description": "Paid Google search ad",
+          "displayOrder": 7,
+          "hidden": false
+        },
+        {
+          "label": "Repeat Customer",
+          "value": "repeat",
+          "description": "Previous customer returning",
+          "displayOrder": 8,
+          "hidden": false
+        },
+        {
+          "label": "Other",
+          "value": "other",
+          "description": "Other lead source",
+          "displayOrder": 9,
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "name": "credit_situation",
+      "label": "Credit Situation",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_info",
+      "description": "Customer's credit tier for financing eligibility",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 2,
+      "options": [
+        {
+          "label": "Excellent (720+)",
+          "value": "excellent",
+          "description": "Credit score 720 and above",
+          "displayOrder": 0,
+          "hidden": false
+        },
+        {
+          "label": "Good (680-719)",
+          "value": "good",
+          "description": "Credit score 680-719",
+          "displayOrder": 1,
+          "hidden": false
+        },
+        {
+          "label": "Fair (620-679)",
+          "value": "fair",
+          "description": "Credit score 620-679",
+          "displayOrder": 2,
+          "hidden": false
+        },
+        {
+          "label": "Poor (Below 620)",
+          "value": "poor",
+          "description": "Credit score below 620",
+          "displayOrder": 3,
+          "hidden": false
+        },
+        {
+          "label": "No Credit",
+          "value": "no_credit",
+          "description": "No established credit history",
+          "displayOrder": 4,
+          "hidden": false
+        },
+        {
+          "label": "Unknown",
+          "value": "unknown",
+          "description": "Credit situation not yet determined",
+          "displayOrder": 5,
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "name": "vehicle_interest",
+      "label": "Vehicle Interest",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_info",
+      "description": "Specific vehicle(s) the customer is interested in (Year Make Model format)",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 3
+    },
+    {
+      "name": "budget_range",
+      "label": "Budget Range",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_info",
+      "description": "Customer's stated budget for vehicle purchase",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 4,
+      "options": [
+        {
+          "label": "Under $10,000",
+          "value": "under_10k",
+          "displayOrder": 0,
+          "hidden": false
+        },
+        {
+          "label": "$10,000 - $15,000",
+          "value": "10k_15k",
+          "displayOrder": 1,
+          "hidden": false
+        },
+        {
+          "label": "$15,000 - $20,000",
+          "value": "15k_20k",
+          "displayOrder": 2,
+          "hidden": false
+        },
+        {
+          "label": "$20,000 - $25,000",
+          "value": "20k_25k",
+          "displayOrder": 3,
+          "hidden": false
+        },
+        {
+          "label": "$25,000 - $30,000",
+          "value": "25k_30k",
+          "displayOrder": 4,
+          "hidden": false
+        },
+        {
+          "label": "Over $30,000",
+          "value": "over_30k",
+          "displayOrder": 5,
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "name": "preferred_contact_method",
+      "label": "Preferred Contact Method",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_info",
+      "description": "How customer prefers to be contacted",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 5,
+      "options": [
+        {
+          "label": "Phone Call",
+          "value": "phone",
+          "displayOrder": 0,
+          "hidden": false
+        },
+        {
+          "label": "Text/SMS",
+          "value": "text",
+          "displayOrder": 1,
+          "hidden": false
+        },
+        {
+          "label": "Email",
+          "value": "email",
+          "displayOrder": 2,
+          "hidden": false
+        },
+        {
+          "label": "Any",
+          "value": "any",
+          "displayOrder": 3,
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "name": "has_trade_in",
+      "label": "Has Trade-In",
+      "type": "bool",
+      "fieldType": "booleancheckbox",
+      "groupName": "dealership_info",
+      "description": "Does the customer have a vehicle to trade in?",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 6
+    },
+    {
+      "name": "trade_in_vehicle",
+      "label": "Trade-In Vehicle",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_info",
+      "description": "Year Make Model of customer's trade-in vehicle",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 7
+    },
+    {
+      "name": "primary_language",
+      "label": "Primary Language",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_info",
+      "description": "Customer's preferred language for communication",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 8,
+      "options": [
+        {
+          "label": "English",
+          "value": "english",
+          "displayOrder": 0,
+          "hidden": false
+        },
+        {
+          "label": "Spanish",
+          "value": "spanish",
+          "displayOrder": 1,
+          "hidden": false
+        },
+        {
+          "label": "Other",
+          "value": "other",
+          "displayOrder": 2,
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "name": "customer_vehicles",
+      "label": "Customer's Vehicles",
+      "type": "string",
+      "fieldType": "textarea",
+      "groupName": "dealership_info",
+      "description": "Vehicles owned by this customer (purchased from us or service history)",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 9
+    },
+    {
+      "name": "ftm_lead_score",
+      "label": "FTM Lead Score",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_info",
+      "description": "AI-calculated lead quality score (0-100). Higher = more likely to convert.",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 10
+    }
+  ],
+  "dealProperties": [
+    {
+      "name": "stock_number",
+      "label": "Stock Number",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_deal_info",
+      "description": "Vehicle inventory/stock number",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 1
+    },
+    {
+      "name": "vehicle_vin",
+      "label": "VIN",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_deal_info",
+      "description": "17-character Vehicle Identification Number",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 2
+    },
+    {
+      "name": "vehicle_year",
+      "label": "Vehicle Year",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info",
+      "description": "Year of vehicle (4-digit)",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 3
+    },
+    {
+      "name": "vehicle_make",
+      "label": "Vehicle Make",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_deal_info",
+      "description": "Vehicle manufacturer (e.g., Honda, Ford, Toyota)",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 4
+    },
+    {
+      "name": "vehicle_model",
+      "label": "Vehicle Model",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_deal_info",
+      "description": "Vehicle model (e.g., Accord, F-150, Camry)",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 5
+    },
+    {
+      "name": "vehicle_trim",
+      "label": "Vehicle Trim",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_deal_info",
+      "description": "Vehicle trim level (e.g., EX, XLT, LE)",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 6
+    },
+    {
+      "name": "vehicle_mileage",
+      "label": "Vehicle Mileage",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info",
+      "description": "Current odometer reading",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 7
+    },
+    {
+      "name": "asking_price",
+      "label": "Asking Price",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info",
+      "description": "Vehicle list price (before negotiation)",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 8
+    },
+    {
+      "name": "trade_in_value",
+      "label": "Trade-In Value",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info",
+      "description": "Allowance given for customer's trade-in vehicle",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 9
+    },
+    {
+      "name": "down_payment",
+      "label": "Down Payment",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info",
+      "description": "Customer's down payment amount",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 10
+    },
+    {
+      "name": "amount_financed",
+      "label": "Amount Financed",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info",
+      "description": "Total loan amount (after down payment and trade-in)",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 11
+    },
+    {
+      "name": "monthly_payment",
+      "label": "Monthly Payment",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info",
+      "description": "Calculated monthly payment amount",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 12
+    },
+    {
+      "name": "loan_term_months",
+      "label": "Loan Term (Months)",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_deal_info",
+      "description": "Financing term length",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 13,
+      "options": [
+        {
+          "label": "36 months",
+          "value": "36",
+          "displayOrder": 0,
+          "hidden": false
+        },
+        {
+          "label": "48 months",
+          "value": "48",
+          "displayOrder": 1,
+          "hidden": false
+        },
+        {
+          "label": "60 months",
+          "value": "60",
+          "displayOrder": 2,
+          "hidden": false
+        },
+        {
+          "label": "72 months",
+          "value": "72",
+          "displayOrder": 3,
+          "hidden": false
+        },
+        {
+          "label": "84 months",
+          "value": "84",
+          "displayOrder": 4,
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "name": "apr",
+      "label": "APR",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info",
+      "description": "Annual Percentage Rate (interest rate)",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 14
+    },
+    {
+      "name": "lender",
+      "label": "Lender",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_deal_info",
+      "description": "Financing institution or in-house",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 15
+    },
+    {
+      "name": "gross_profit",
+      "label": "Gross Profit",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_deal_info",
+      "description": "Deal profitability (internal use)",
+      "hasUniqueValue": false,
+      "hidden": true,
+      "displayOrder": 16
+    },
+    {
+      "name": "test_drive_date",
+      "label": "Test Drive Date",
+      "type": "datetime",
+      "fieldType": "date",
+      "groupName": "dealership_deal_info",
+      "description": "Scheduled test drive date/time",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 17
+    },
+    {
+      "name": "delivery_date",
+      "label": "Delivery Date",
+      "type": "datetime",
+      "fieldType": "date",
+      "groupName": "dealership_deal_info",
+      "description": "Vehicle delivery/pickup date",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 18
+    },
+    {
+      "name": "reason_lost",
+      "label": "Reason Lost",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_deal_info",
+      "description": "Why the deal was lost (required when moving to Lost stage)",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 19,
+      "options": [
+        {
+          "label": "Price - Too High",
+          "value": "price_high",
+          "displayOrder": 0,
+          "hidden": false
+        },
+        {
+          "label": "Bought Elsewhere",
+          "value": "bought_elsewhere",
+          "displayOrder": 1,
+          "hidden": false
+        },
+        {
+          "label": "Credit Declined",
+          "value": "credit_declined",
+          "displayOrder": 2,
+          "hidden": false
+        },
+        {
+          "label": "No Response",
+          "value": "no_response",
+          "displayOrder": 3,
+          "hidden": false
+        },
+        {
+          "label": "Changed Mind",
+          "value": "changed_mind",
+          "displayOrder": 4,
+          "hidden": false
+        },
+        {
+          "label": "Trade-In Value",
+          "value": "trade_value",
+          "displayOrder": 5,
+          "hidden": false
+        },
+        {
+          "label": "Vehicle Not Available",
+          "value": "not_available",
+          "displayOrder": 6,
+          "hidden": false
+        },
+        {
+          "label": "Other",
+          "value": "other",
+          "displayOrder": 7,
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "name": "salesperson",
+      "label": "Salesperson",
+      "type": "enumeration",
+      "fieldType": "select",
+      "groupName": "dealership_deal_info",
+      "description": "Assigned salesperson for this deal",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 20,
+      "options": [
+        {
+          "label": "Robert",
+          "value": "robert",
+          "displayOrder": 0,
+          "hidden": false
+        },
+        {
+          "label": "Ramon",
+          "value": "ramon",
+          "displayOrder": 1,
+          "hidden": false
+        },
+        {
+          "label": "Julio",
+          "value": "julio",
+          "displayOrder": 2,
+          "hidden": false
+        },
+        {
+          "label": "Leo",
+          "value": "leo",
+          "displayOrder": 3,
+          "hidden": false
+        },
+        {
+          "label": "Jorge",
+          "value": "jorge",
+          "displayOrder": 4,
+          "hidden": false
+        },
+        {
+          "label": "Isaac",
+          "value": "isaac",
+          "displayOrder": 5,
+          "hidden": false
+        },
+        {
+          "label": "David",
+          "value": "david",
+          "displayOrder": 6,
+          "hidden": false
+        },
+        {
+          "label": "Ali (Owner)",
+          "value": "ali",
+          "displayOrder": 7,
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "name": "service_type",
+      "label": "Service Type",
+      "type": "enumeration",
+      "fieldType": "checkbox",
+      "groupName": "dealership_service_info",
+      "description": "Type(s) of service requested (can select multiple)",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 1,
+      "options": [
+        {
+          "label": "Oil Change",
+          "value": "oil_change",
+          "displayOrder": 0,
+          "hidden": false
+        },
+        {
+          "label": "Brake Service",
+          "value": "brakes",
+          "displayOrder": 1,
+          "hidden": false
+        },
+        {
+          "label": "Tire Service",
+          "value": "tires",
+          "displayOrder": 2,
+          "hidden": false
+        },
+        {
+          "label": "NJ Inspection",
+          "value": "inspection",
+          "displayOrder": 3,
+          "hidden": false
+        },
+        {
+          "label": "Diagnostic",
+          "value": "diagnostic",
+          "displayOrder": 4,
+          "hidden": false
+        },
+        {
+          "label": "A/C Service",
+          "value": "ac",
+          "displayOrder": 5,
+          "hidden": false
+        },
+        {
+          "label": "Engine Repair",
+          "value": "engine",
+          "displayOrder": 6,
+          "hidden": false
+        },
+        {
+          "label": "Transmission",
+          "value": "transmission",
+          "displayOrder": 7,
+          "hidden": false
+        },
+        {
+          "label": "Other",
+          "value": "other",
+          "displayOrder": 8,
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "name": "service_vehicle",
+      "label": "Service Vehicle",
+      "type": "string",
+      "fieldType": "text",
+      "groupName": "dealership_service_info",
+      "description": "Year Make Model of vehicle being serviced",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 2
+    },
+    {
+      "name": "service_mileage",
+      "label": "Service Mileage",
+      "type": "number",
+      "fieldType": "number",
+      "groupName": "dealership_service_info",
+      "description": "Current odometer reading at service",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 3
+    },
+    {
+      "name": "appointment_datetime",
+      "label": "Appointment Date/Time",
+      "type": "datetime",
+      "fieldType": "date",
+      "groupName": "dealership_service_info",
+      "description": "Scheduled service appointment date and time",
+      "hasUniqueValue": false,
+      "hidden": false,
+      "displayOrder": 4
+    }
+  ],
+  "apiInstructions": {
+    "authentication": {
+      "method": "Private App Access Token",
+      "steps": [
+        "1. Go to HubSpot Settings > Integrations > Private Apps",
+        "2. Create new Private App: 'Fast Track Motors API'",
+        "3. Request scopes: crm.objects.contacts.read, crm.objects.contacts.write, crm.objects.deals.read, crm.objects.deals.write, crm.schemas.contacts.read, crm.schemas.contacts.write, crm.schemas.deals.read, crm.schemas.deals.write",
+        "4. Copy Access Token for use in API calls"
+      ]
+    },
+    "createPropertyGroups": {
+      "endpoint": "POST https://api.hubapi.com/crm/v3/properties/{objectType}/groups",
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "examplePayload": {
+        "name": "dealership_info",
+        "label": "Dealership Information",
+        "displayOrder": 0
+      },
+      "note": "Create all 3 property groups first before creating properties"
+    },
+    "createProperty": {
+      "endpoint": "POST https://api.hubapi.com/crm/v3/properties/{objectType}",
+      "headers": {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN",
+        "Content-Type": "application/json"
+      },
+      "examplePayloadText": {
+        "name": "vehicle_interest",
+        "label": "Vehicle Interest",
+        "type": "string",
+        "fieldType": "text",
+        "groupName": "dealership_info",
+        "description": "Specific vehicle(s) the customer is interested in",
+        "hasUniqueValue": false,
+        "hidden": false
+      },
+      "examplePayloadDropdown": {
+        "name": "lead_source",
+        "label": "Lead Source",
+        "type": "enumeration",
+        "fieldType": "select",
+        "groupName": "dealership_info",
+        "description": "How the customer found Fast Track Motors",
+        "hasUniqueValue": false,
+        "hidden": false,
+        "options": [
+          {
+            "label": "Walk-In",
+            "value": "walk_in",
+            "displayOrder": 0,
+            "hidden": false
+          },
+          {
+            "label": "Phone Call",
+            "value": "phone_call",
+            "displayOrder": 1,
+            "hidden": false
+          }
+        ]
+      },
+      "note": "Replace {objectType} with 'contacts' or 'deals' depending on property"
+    },
+    "n8nWorkflowUsage": {
+      "description": "Use this JSON structure in n8n HTTP Request nodes to create properties programmatically",
+      "steps": [
+        "1. Create n8n workflow with HTTP Request node",
+        "2. Method: POST",
+        "3. URL: https://api.hubapi.com/crm/v3/properties/contacts (or deals)",
+        "4. Authentication: Header Auth (Authorization: Bearer YOUR_TOKEN)",
+        "5. Body: JSON from contactProperties or dealProperties arrays",
+        "6. Loop through each property in array",
+        "7. Execute requests sequentially"
+      ]
+    },
+    "bulkCreateScript": {
+      "description": "Example Node.js script to bulk create all properties",
+      "code": "See /crm/scripts/bulk-create-properties.js (to be created if needed)"
+    }
+  }
+}

@@ -6,7 +6,12 @@
       "WebFetch(domain:urauto.ai)",
       "WebFetch(domain:au.linkedin.com)",
       "WebFetch(domain:fasttrackmotors.com)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "WebFetch(domain:voiceinfra.ai)",
+      "WebFetch(domain:developers.hubspot.com)",
+      "WebFetch(domain:docs.n8n.io)",
+      "WebFetch(domain:docs.retellai.com)",
+      "WebFetch(domain:www.retellai.com)"
     ],
     "deny": [],
     "ask": []

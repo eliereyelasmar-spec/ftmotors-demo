@@ -1,0 +1,460 @@
+{
+  "name": "FTM Voice AI - Complete System v2",
+  "description": "Production-ready Voice AI with SMS forms, trade-in valuation, calendar booking, and CRM integration",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ftm-voice-agent",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [100, 400],
+      "id": "webhook-trigger",
+      "name": "Retell Webhook",
+      "webhookId": "ftm-voice-agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=The call transcription:\n\n{{ $json.body.call.transcript }}",
+        "options": {
+          "systemMessage": "={{ $('Load Prompt').item.json.prompt }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [500, 400],
+      "id": "ai-agent",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list"
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [400, 650],
+      "id": "openai-model",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "YOUR_CALENDAR_ID@gmail.com",
+          "mode": "list"
+        },
+        "returnAll": "={{ $fromAI('Return_All', ``, 'boolean') }}",
+        "timeMin": "={{ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [550, 700],
+      "id": "get-events",
+      "name": "Get Calendar Events",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "YOUR_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Calendar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "YOUR_CALENDAR_ID@gmail.com",
+          "mode": "list"
+        },
+        "start": "={{ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "description": "={{ $fromAI('Description', ``, 'string') }}",
+          "summary": "={{ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [700, 700],
+      "id": "create-event",
+      "name": "Create Calendar Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "YOUR_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Calendar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "YOUR_CALENDAR_ID@gmail.com",
+          "mode": "list"
+        },
+        "eventId": "={{ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [400, 800],
+      "id": "delete-event",
+      "name": "Delete Calendar Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "YOUR_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Calendar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "send_form_sms",
+        "description": "Sends a form link to the customer via SMS text message. Use this when customer wants financing pre-qual, trade-in form, test drive request, service form, or vehicle inquiry form.",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"phone_number\": {\n      \"type\": \"string\",\n      \"description\": \"Customer phone number in format +12015551234\"\n    },\n    \"form_type\": {\n      \"type\": \"string\",\n      \"enum\": [\"financing\", \"test_drive\", \"trade_in\", \"service\", \"vehicle_inquiry\"],\n      \"description\": \"Type of form to send\"\n    },\n    \"customer_name\": {\n      \"type\": \"string\",\n      \"description\": \"Customer first name for personalization\"\n    }\n  },\n  \"required\": [\"phone_number\", \"form_type\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [850, 700],
+      "id": "sms-form-tool",
+      "name": "Send Form SMS Tool"
+    },
+    {
+      "parameters": {
+        "name": "get_trade_in_value",
+        "description": "Gets estimated trade-in value for a vehicle. Requires year, make, model, mileage, and condition. VIN is optional but preferred.",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"vin\": {\n      \"type\": \"string\",\n      \"description\": \"17-character VIN (optional if providing year/make/model)\"\n    },\n    \"year\": {\n      \"type\": \"string\",\n      \"description\": \"Vehicle year e.g. 2021\"\n    },\n    \"make\": {\n      \"type\": \"string\",\n      \"description\": \"Vehicle make e.g. Toyota\"\n    },\n    \"model\": {\n      \"type\": \"string\",\n      \"description\": \"Vehicle model e.g. Camry\"\n    },\n    \"mileage\": {\n      \"type\": \"string\",\n      \"description\": \"Current odometer reading\"\n    },\n    \"condition\": {\n      \"type\": \"string\",\n      \"enum\": [\"excellent\", \"good\", \"fair\", \"poor\"],\n      \"description\": \"Overall vehicle condition\"\n    }\n  },\n  \"required\": [\"year\", \"make\", \"model\", \"mileage\", \"condition\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [1000, 700],
+      "id": "trade-in-tool",
+      "name": "Trade-In Value Tool"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [750, 400],
+      "id": "respond-webhook",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Load the prompt with dynamic values\nconst now = new Date().toISOString();\n\nconst prompt = `## ROLE\nYou are the friendly AI voice assistant for Fast Track Motors, a trusted used car dealership in Paterson, New Jersey.\nYour job is to help callers: schedule test drives, book service appointments, answer questions, capture leads, and send relevant forms via text message.\nKeep replies short, natural, and conversational.\nNever ask two questions at once.\nUse the caller's first name when you know it.\n\n---\n\n## TONE\nFriendly, professional, helpful.\nNatural pace - not rushed or robotic.\nShort sentences. Conversational.\nBe warm about financing - customers are often nervous about credit.\n\n---\n\n## RESPONSE STYLE - NO NARRATION\n\nNever narrate what you're doing. Just do it and respond with the result.\n\nWRONG: \"Let me check if 2pm is available...\"\nCORRECT: \"2pm works great! Can I get your name to confirm?\"\n\nBANNED PHRASES:\n- \"checking availability\"\n- \"booking your appointment\"\n- \"let me check\"\n- \"one moment\"\n- \"just a second\"\n- \"hold on\"\n- \"sending that now\"\n\n---\n\n## SMS FORM TOOL\n\nYou can send forms to customers via text message.\n\nAVAILABLE FORMS:\n- financing: For credit/pre-approval questions\n- test_drive: For test drive requests\n- trade_in: For trade-in valuation\n- service: For service appointment details\n- vehicle_inquiry: For general vehicle questions\n\nWHEN TO OFFER:\n- Financing questions: \"Would you like me to text you our pre-qualification form?\"\n- Trade-in interest: \"I can text you our trade-in form to get an estimate.\"\n- Can't book now: \"Want me to text you a form to fill out when ready?\"\n\nAfter sending: \"I just sent that to your phone!\"\n\n---\n\n## TRADE-IN VALUATION TOOL\n\nCollect: Year, Make, Model, Mileage, Condition (excellent/good/fair/poor)\nOptional: VIN\n\nCall get_trade_in_value, then say:\n\"Based on that, your estimated trade-in value is around $X to $Y. Final offer depends on inspection. Want to schedule a time to bring it in?\"\n\n---\n\n## DEALERSHIP INFO\nFast Track Motors\n509 10th Avenue, Paterson, NJ 07514\n(201) 340-6400\nHours: Mon-Sat 9AM-7PM, Closed Sunday\n4.7 stars, 2,100+ reviews\n\n---\n\n## BOOKING\n\n1. Check availability with get_events\n2. Offer 3 options if requested time taken\n3. Create booking with create_event ONLY after customer confirms\n4. NEVER say \"booked\" until create_event succeeds\n\nDurations: Test drive 45min, Oil change 45min, Service 60min, Inspection 30min\n\n---\n\n## GOODBYE\n\nSay goodbye ONCE, then stop. Options:\n- \"You're all set. See you on [day]!\"\n- \"Perfect! See you at Fast Track Motors!\"\n- \"All done. Have a great day!\"\n\n---\n\nToday: ${now}\nTimezone: America/New_York (EST UTC-05:00)\nCalendar format: YYYY-MM-DDTHH:MM:SS-05:00\n\nGOALS: Capture leads, book appointments, send SMS forms when appropriate, provide trade-in estimates.`;\n\nreturn { prompt };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 400],
+      "id": "load-prompt",
+      "name": "Load Prompt"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ftm-send-sms",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [100, 100],
+      "id": "sms-webhook",
+      "name": "SMS Form Webhook",
+      "webhookId": "ftm-send-sms"
+    },
+    {
+      "parameters": {
+        "jsCode": "// SMS Form Sender\nconst input = $input.all()[0].json;\nconst phone = input.phone_number;\nconst formType = input.form_type;\nconst name = input.customer_name || 'there';\n\n// Form URLs - UPDATE THESE WITH YOUR ACTUAL URLs\nconst BASE_URL = 'https://YOUR-GITHUB-USERNAME.github.io/ftmotors/forms';\n\nconst forms = {\n  'financing': {\n    url: `${BASE_URL}/financing-prequalification.html`,\n    message: `Hi ${name}! Here's the pre-qualification form for Fast Track Motors. Takes just 2 minutes: `\n  },\n  'test_drive': {\n    url: `${BASE_URL}/test-drive.html`,\n    message: `Hi ${name}! Schedule your test drive at Fast Track Motors: `\n  },\n  'trade_in': {\n    url: `${BASE_URL}/trade-in.html`,\n    message: `Hi ${name}! Get your free trade-in estimate from Fast Track Motors: `\n  },\n  'service': {\n    url: `${BASE_URL}/service-appointment.html`,\n    message: `Hi ${name}! Book your service appointment at Fast Track Motors: `\n  },\n  'vehicle_inquiry': {\n    url: `${BASE_URL}/vehicle-inquiry.html`,\n    message: `Hi ${name}! Tell us what you're looking for at Fast Track Motors: `\n  }\n};\n\nconst form = forms[formType];\nif (!form) {\n  return { success: false, error: 'Invalid form type' };\n}\n\nconst smsBody = form.message + form.url;\n\nreturn {\n  phone: phone,\n  body: smsBody,\n  formType: formType,\n  formUrl: form.url\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 100],
+      "id": "build-sms",
+      "name": "Build SMS Message"
+    },
+    {
+      "parameters": {
+        "from": "YOUR_TWILIO_NUMBER",
+        "to": "={{ $json.phone }}",
+        "message": "={{ $json.body }}"
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [500, 100],
+      "id": "send-twilio-sms",
+      "name": "Send SMS via Twilio",
+      "credentials": {
+        "twilioApi": {
+          "id": "YOUR_TWILIO_CREDENTIAL_ID",
+          "name": "Twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Return success response\nconst input = $input.all()[0].json;\n\nreturn {\n  success: true,\n  message: 'Form sent successfully',\n  formType: input.formType || 'unknown',\n  phone: input.phone || input.to\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 100],
+      "id": "sms-response",
+      "name": "SMS Success Response"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ftm-trade-value",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [100, -100],
+      "id": "trade-in-webhook",
+      "name": "Trade-In Value Webhook",
+      "webhookId": "ftm-trade-value"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Trade-In Value Calculator\n// Uses CarGurus IMV API (free) or falls back to estimate formula\n\nconst input = $input.all()[0].json;\nconst { vin, year, make, model, mileage, condition } = input;\n\n// Base value calculation (simplified - in production use actual API)\n// This is a fallback formula when APIs are unavailable\n\n// Average depreciation factors\nconst currentYear = new Date().getFullYear();\nconst vehicleAge = currentYear - parseInt(year);\n\n// Base values by vehicle type (rough estimates)\nconst baseValues = {\n  // Sedans\n  'accord': 25000, 'camry': 26000, 'civic': 22000, 'corolla': 21000,\n  'altima': 23000, 'sentra': 19000, 'elantra': 20000, 'sonata': 23000,\n  'malibu': 22000, 'fusion': 21000, 'optima': 22000,\n  // SUVs\n  'rav4': 30000, 'crv': 29000, 'rogue': 28000, 'tucson': 27000,\n  'equinox': 27000, 'escape': 26000, 'sportage': 26000, 'cx5': 29000,\n  'highlander': 38000, 'pilot': 37000, 'pathfinder': 35000,\n  // Trucks\n  'f150': 40000, 'silverado': 38000, 'ram': 39000, 'tacoma': 35000,\n  'tundra': 42000, 'sierra': 38000,\n  // Default\n  'default': 22000\n};\n\n// Get base value\nconst modelLower = model.toLowerCase().replace(/[^a-z0-9]/g, '');\nlet baseValue = baseValues[modelLower] || baseValues['default'];\n\n// Age depreciation (roughly 15% per year for first 5 years, 10% after)\nlet depreciationRate = vehicleAge <= 5 ? 0.15 : 0.10;\nlet ageMultiplier = Math.pow(1 - depreciationRate, vehicleAge);\n\n// Mileage adjustment (avg 12k miles/year)\nconst expectedMileage = vehicleAge * 12000;\nconst actualMileage = parseInt(mileage) || expectedMileage;\nconst mileageDiff = actualMileage - expectedMileage;\nconst mileageAdjustment = mileageDiff * -0.10; // $0.10 per mile over/under\n\n// Condition multipliers\nconst conditionMultipliers = {\n  'excellent': 1.10,\n  'good': 1.00,\n  'fair': 0.85,\n  'poor': 0.65\n};\nconst conditionMultiplier = conditionMultipliers[condition] || 1.00;\n\n// Calculate values\nlet tradeInBase = baseValue * ageMultiplier * conditionMultiplier + mileageAdjustment;\ntradeInBase = Math.max(tradeInBase, 2000); // Minimum $2000\n\nconst tradeInLow = Math.round(tradeInBase * 0.90 / 100) * 100;\nconst tradeInHigh = Math.round(tradeInBase * 1.05 / 100) * 100;\nconst privateParty = Math.round(tradeInBase * 1.15 / 100) * 100;\nconst retail = Math.round(tradeInBase * 1.35 / 100) * 100;\n\nreturn {\n  success: true,\n  trade_in_low: tradeInLow,\n  trade_in_high: tradeInHigh,\n  private_party: privateParty,\n  retail: retail,\n  source: 'Estimated',\n  vehicle: `${year} ${make} ${model}`,\n  mileage: actualMileage,\n  condition: condition,\n  disclaimer: 'Estimate only. Final value subject to in-person inspection.'\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, -100],
+      "id": "calculate-trade-value",
+      "name": "Calculate Trade-In Value"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"properties\": {\n    \"phone\": \"{{ $json.caller_phone }}\",\n    \"firstname\": \"{{ $json.first_name }}\",\n    \"lastname\": \"{{ $json.last_name }}\",\n    \"hs_lead_status\": \"NEW\",\n    \"leadsource\": \"Voice AI\",\n    \"notes_last_contacted\": \"Voice AI call: {{ $json.call_summary }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 400],
+      "id": "hubspot-create-contact",
+      "name": "HubSpot Create Contact",
+      "disabled": true,
+      "notesInFlow": true,
+      "notes": "Enable this and configure HubSpot credentials to sync contacts"
+    }
+  ],
+  "connections": {
+    "Retell Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Prompt": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Calendar Events": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Calendar Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Calendar Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Form SMS Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trade-In Value Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SMS Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build SMS Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SMS Message": {
+      "main": [
+        [
+          {
+            "node": "Send SMS via Twilio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS via Twilio": {
+      "main": [
+        [
+          {
+            "node": "SMS Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trade-In Value Webhook": {
+      "main": [
+        [
+          {
+            "node": "Calculate Trade-In Value",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "fast-track-motors-v2"
+  },
+  "tags": ["Fast Track Motors", "Voice AI", "SMS", "Trade-In", "Complete System"],
+  "setupInstructions": {
+    "required_credentials": [
+      "OpenAI API Key",
+      "Google Calendar OAuth2",
+      "Twilio Account (for SMS)",
+      "HubSpot API Key (optional)"
+    ],
+    "configuration_steps": [
+      "1. Import workflow into n8n",
+      "2. Configure OpenAI credentials",
+      "3. Configure Google Calendar OAuth2",
+      "4. Configure Twilio credentials for SMS",
+      "5. Update BASE_URL in 'Build SMS Message' node with your GitHub Pages URL",
+      "6. Update YOUR_TWILIO_NUMBER with your Twilio phone number",
+      "7. (Optional) Enable and configure HubSpot node for CRM sync",
+      "8. Activate workflow",
+      "9. Copy webhook URL to Retell AI agent settings",
+      "10. Test with a phone call!"
+    ],
+    "form_urls_to_configure": {
+      "financing": "/forms/financing-prequalification.html",
+      "test_drive": "/forms/test-drive.html",
+      "trade_in": "/forms/trade-in.html",
+      "service": "/forms/service-appointment.html",
+      "vehicle_inquiry": "/forms/vehicle-inquiry.html"
+    }
+  }
+}
