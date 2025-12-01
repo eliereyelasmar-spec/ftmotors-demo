@@ -11,18 +11,23 @@ window.FTM_CONFIG = {
     // For tunnel (ngrok/cloudflare): 'https://your-tunnel.ngrok.io/webhook/ftm-lead'
     webhookUrl: 'http://localhost:5678/webhook/ftm-lead',
 
+    // Retell AI Web Widget Configuration
+    // Get your Agent ID from the Retell dashboard: https://app.retellai.com/agents
+    // Leave as placeholder to fall back to phone call
+    retellAgentId: 'YOUR_RETELL_AGENT_ID',
+
     // Company Information
     company: {
         name: 'Fast Track Motors',
-        phone: '(201) 340-6400',
-        phoneLink: '+12013406400',
+        phone: '(438) 900-6942',
+        phoneLink: '+14389006942',
         address: '509 10th Ave, Paterson, NJ 07514',
         email: 'sales@fasttrackmotors.com'
     },
 
     // Alert Recipients (for n8n workflow)
     alerts: {
-        phone1: '+12013406400', // Primary recipient
+        phone1: '+14389006942', // Primary recipient (Retell AI number)
         phone2: '',             // Secondary recipient (optional)
         email: 'sales@fasttrackmotors.com'
     },
