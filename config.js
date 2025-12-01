@@ -14,7 +14,7 @@ window.FTM_CONFIG = {
     // Retell AI Web Widget Configuration
     // Get your Agent ID from the Retell dashboard: https://app.retellai.com/agents
     // Leave as placeholder to fall back to phone call
-    retellAgentId: 'YOUR_RETELL_AGENT_ID',
+    retellAgentId: 'agent_ebe94306f78ae2d8d31722fd59',
 
     // Company Information
     company: {
