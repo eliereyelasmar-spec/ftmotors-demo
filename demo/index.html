@@ -1235,8 +1235,8 @@
         </div>
     </footer>
 
-    <!-- Floating Voice AI Button -->
-    <div id="voice-ai-button" onclick="startVoiceCall()" style="
+    <!-- Floating Call AI Button -->
+    <a href="tel:+14389006942" id="voice-ai-button" style="
         position: fixed;
         bottom: 24px;
         right: 24px;
@@ -1251,13 +1251,13 @@
         box-shadow: 0 8px 32px rgba(27, 102, 255, 0.4);
         z-index: 9999;
         transition: all 0.3s ease;
+        text-decoration: none;
     " onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 12px 40px rgba(27, 102, 255, 0.5)';"
        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 32px rgba(27, 102, 255, 0.4)';">
         <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
-            <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3z"/>
-            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
         </svg>
-    </div>
+    </a>
 
     <!-- Voice AI Label Tooltip -->
     <div id="voice-ai-label" style="
@@ -1274,7 +1274,7 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         animation: pulse-label 2s ease-in-out infinite;
     ">
-        Talk to AI
+        Call AI Demo
         <div style="
             position: absolute;
             bottom: -6px;
@@ -1291,98 +1291,16 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
         }
-
-        #voice-ai-button.calling {
-            animation: calling-pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes calling-pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(27, 102, 255, 0.4); }
-            50% { box-shadow: 0 0 0 20px rgba(27, 102, 255, 0); }
-        }
     </style>
-
-    <!-- Retell AI Web SDK -->
-    <script src="https://cdn.retellai.com/sdk/web-sdk-1.4.2.js"></script>
 
     <!-- Configuration Script -->
     <script src="../config.js"></script>
 
     <script>
-        // Voice AI Web Calling
-        let retellClient = null;
-        let isCallActive = false;
-
-        async function startVoiceCall() {
-            const button = document.getElementById('voice-ai-button');
-            const label = document.getElementById('voice-ai-label');
-
-            // If call is active, end it
-            if (isCallActive && retellClient) {
-                retellClient.stopCall();
-                return;
-            }
-
-            // Get agent ID from config or use placeholder
-            const config = window.FTM_CONFIG || {};
-            const agentId = config.retellAgentId || 'YOUR_RETELL_AGENT_ID';
-
-            if (agentId === 'YOUR_RETELL_AGENT_ID') {
-                // Fallback to phone call if no agent ID configured
-                window.location.href = 'tel:+14389006942';
-                return;
-            }
-
-            try {
-                // Request microphone permission
-                await navigator.mediaDevices.getUserMedia({ audio: true });
-
-                // Initialize Retell client
-                retellClient = new RetellWebClient();
-
-                // Set up event listeners
-                retellClient.on('call_started', () => {
-                    isCallActive = true;
-                    button.classList.add('calling');
-                    button.innerHTML = '<svg width="28" height="28" fill="white" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>';
-                    label.textContent = 'Tap to end call';
-                    label.style.background = '#EF4444';
-                });
-
-                retellClient.on('call_ended', () => {
-                    isCallActive = false;
-                    button.classList.remove('calling');
-                    button.innerHTML = '<svg width="28" height="28" fill="white" viewBox="0 0 24 24"><path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>';
-                    label.textContent = 'Talk to AI';
-                    label.style.background = 'rgba(18, 18, 18, 0.95)';
-                });
-
-                retellClient.on('error', (error) => {
-                    console.error('Retell error:', error);
-                    isCallActive = false;
-                    button.classList.remove('calling');
-                    alert('Could not connect to AI. Please call (438) 900-6942 instead.');
-                });
-
-                // Start the call
-                await retellClient.startCall({
-                    agentId: agentId,
-                    enableUpdate: true
-                });
-
-            } catch (error) {
-                console.error('Voice call error:', error);
-                // Fallback to phone call
-                if (confirm('Microphone access needed for browser calling. Would you like to call by phone instead?')) {
-                    window.location.href = 'tel:+14389006942';
-                }
-            }
-        }
-
-        // Hide label after 5 seconds
+        // Hide call label after 5 seconds
         setTimeout(() => {
             const label = document.getElementById('voice-ai-label');
-            if (label && !isCallActive) {
+            if (label) {
                 label.style.opacity = '0';
                 label.style.transition = 'opacity 0.5s ease';
                 setTimeout(() => {
@@ -1399,10 +1317,8 @@
         });
 
         document.getElementById('voice-ai-button').addEventListener('mouseleave', () => {
-            if (!isCallActive) {
-                const label = document.getElementById('voice-ai-label');
-                label.style.opacity = '0';
-            }
+            const label = document.getElementById('voice-ai-label');
+            label.style.opacity = '0';
         });
 
         function calculateROI() {
